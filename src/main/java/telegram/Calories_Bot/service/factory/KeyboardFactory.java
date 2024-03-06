@@ -16,6 +16,12 @@ import java.util.List;
 @Component
 public class KeyboardFactory {
 
+    /**
+     * @param text Конфигурация текста на кнопках
+     * @param configuration Количество кнопок в ряду
+     * @param data Данные enum CallbackData
+     */
+
     public InlineKeyboardMarkup createInlineKeyboard(
             List<String> text,
             List<Integer> configuration,
