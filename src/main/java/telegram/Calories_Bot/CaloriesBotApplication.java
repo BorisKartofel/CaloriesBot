@@ -11,9 +11,9 @@ public class CaloriesBotApplication {
     public static void main(String[] args) {
         ApplicationContext applicationContext = SpringApplication.run(CaloriesBotApplication.class, args);
 
-        HTTPRequestSender requestSender = new HTTPRequestSender();
-        TelegramProperties telegramProperties = applicationContext.getBean(TelegramProperties.class);
-
-        requestSender.setTelegramBotWebHook(telegramProperties.getUrl(), telegramProperties.getToken());
+//        HTTPRequestSender requestSender = new HTTPRequestSender();
+//        TelegramProperties telegramProperties = applicationContext.getBean(TelegramProperties.class);
+//
+//        requestSender.setTelegramBotWebHook(telegramProperties.getUrl(), telegramProperties.getToken());
     }
 }

@@ -35,8 +35,13 @@ public class User extends AbstractEntity {
     @OneToMany
     Set<Notification> notifications;
 
-    @OneToMany(mappedBy = "user")
-    Set<UserProduct> userProducts;
+    @ManyToMany()
+    @JoinTable(
+            name = "users_products",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    List<Product> products;
 
     @Column(name = "current_notification_id")
     UUID currentNotification;
