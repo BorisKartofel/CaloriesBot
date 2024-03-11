@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import telegram.Calories_Bot.entity.contract.AbstractEntity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,6 +34,14 @@ public class User extends AbstractEntity {
 
     @OneToMany
     Set<Notification> notifications;
+
+    @ManyToMany()
+    @JoinTable(
+            name = "users_products",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    List<Product> products;
 
     @Column(name = "current_notification_id")
     UUID currentNotification;

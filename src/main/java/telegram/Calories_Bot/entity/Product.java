@@ -1,10 +1,9 @@
 package telegram.Calories_Bot.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,5 +32,8 @@ public class Product {
 
     @Column(name = "kcal_value")
     private Integer kcal;
+
+    @ManyToMany(mappedBy = "products")
+    private List<User> users;
 
 }

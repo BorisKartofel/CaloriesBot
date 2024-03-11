@@ -60,7 +60,7 @@ public class UpdateDispatcher {
                         .action(Action.FREE)
                         .registeredAt(LocalDateTime.now())
                         .chatId(chatId)
-                        .firstName("Yo")
+                        .firstName("Unnamed User")
                         .build()
         );
     }

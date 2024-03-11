@@ -19,10 +19,10 @@ public class CommandHandler extends AbstractHandler {
 
     @Override
     public BotApiMethod<?> answer(BotApiObject object, Bot bot) {
-        var message = (Message) object;
+        Message message = (Message) object;
         if ("/start".equals(message.getText())) {
             return mainManager.answerCommand(message, bot);
         }
-        throw new UnsupportedOperationException();
+        return operationIsNotSupported(message, bot);
     }
 }
