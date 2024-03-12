@@ -31,6 +31,6 @@ public class MessageHandler extends AbstractHandler {
                 return notificationManager.answerMessage(message, bot);
             }
         }
-        throw new UnsupportedOperationException();
+        return operationIsNotSupported(message, bot);
     }
 }

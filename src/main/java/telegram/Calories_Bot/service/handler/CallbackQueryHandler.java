@@ -17,8 +17,10 @@ import telegram.Calories_Bot.service.manager.notification.NotificationManager;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CallbackQueryHandler extends AbstractHandler {
+
     NotificationManager notificationManager;
     MainManager mainManager;
+
     @Override
     public BotApiMethod<?> answer(BotApiObject object, Bot bot) throws TelegramApiException {
         var query = (CallbackQuery) object;
@@ -31,6 +33,6 @@ public class CallbackQueryHandler extends AbstractHandler {
                 return mainManager.answerQuery(query, words, bot);
             }
         }
-        throw new UnsupportedOperationException();
+        return operationIsNotSupported(query, bot);
     }
 }

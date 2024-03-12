@@ -36,10 +36,10 @@ public class MainManager extends AbstractManager implements CommandListener, Que
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
-                .text("Приветствую, дорогой друг!")
+                .text("Выберите действие")
                 .replyMarkup(
                         keyboardFactory.createInlineKeyboard(
-                                List.of("Напоминалки"),
+                                List.of("Уведомления"),
                                 List.of(1),
                                 List.of(notification_main.name())
                         )
@@ -51,10 +51,10 @@ public class MainManager extends AbstractManager implements CommandListener, Que
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text("Приветствую, дорогой друг!")
+                .text("Выберите вид уведомления")
                 .replyMarkup(
                         keyboardFactory.createInlineKeyboard(
-                                List.of("Напоминалки"),
+                                List.of("Одноразовое напоминание"),
                                 List.of(1),
                                 List.of(notification_main.name())
                         )

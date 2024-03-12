@@ -3,6 +3,7 @@ package telegram.Calories_Bot.service.contract;
 import org.telegram.telegrambots.meta.api.interfaces.BotApiObject;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
@@ -18,7 +19,14 @@ public abstract class AbstractHandler {
     protected BotApiMethod<?> operationIsNotSupported(Message message, Bot bot) {
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text("Я не знаю такой команды")
+                .text("Я пока не умею обрабатывать такие запросы")
+                .build();
+    }
+
+    protected BotApiMethod<?> operationIsNotSupported(CallbackQuery callbackQuery, Bot bot) {
+        return SendMessage.builder()
+                .chatId(callbackQuery.getMessage().getChatId())
+                .text("Я пока не умею обрабатывать такие запросы")
                 .build();
     }
 
