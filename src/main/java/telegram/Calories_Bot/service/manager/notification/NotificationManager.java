@@ -109,7 +109,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         notification.setTitle(message.getText());
         notificationRepo.save(notification);
 
-        user.setAction(Action.FREE);
+        user.setAction(Action.NONE);
         userRepo.save(user);
         return mainMenu(message, bot);
     }
@@ -119,7 +119,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         notification.setDescription(message.getText());
         notificationRepo.save(notification);
 
-        user.setAction(Action.FREE);
+        user.setAction(Action.NONE);
         userRepo.save(user);
         return mainMenu(message, bot);
     }
@@ -148,7 +148,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                     .build();
         }
         notificationRepo.save(notification);
-        user.setAction(Action.FREE);
+        user.setAction(Action.NONE);
         userRepo.save(user);
         return mainMenu(message, bot);
     }
@@ -199,11 +199,11 @@ public class NotificationManager extends AbstractManager implements QueryListene
 
     private BotApiMethod<?> sendNotification(CallbackQuery query, String id, Bot bot) throws TelegramApiException {
         var notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
-        if (notification.getTitle() == null  || notification.getTitle().isBlank() || notification.getSeconds() == null) {
+        if (notification.getTitle() == null || notification.getTitle().isBlank() || notification.getSeconds() == null) {
             return AnswerCallbackQuery.builder()
-                            .callbackQueryId(query.getId())
-                            .text("Заполните обязательные поля: Заголовок и Время")
-                            .build();
+                    .callbackQueryId(query.getId())
+                    .text("Заполните обязательные поля: Заголовок и Время")
+                    .build();
         }
         bot.execute(
                 AnswerCallbackQuery.builder()
@@ -251,9 +251,11 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡\uFE0F Введите время, через которое прислать вам напоминание." +
-                        "\nФормат - ЧЧ:ММ:СС" +
-                        "\nНапример - (01:00:30 - один час, ноль минут, тридцать секунд)")
+                .text("""
+                        ⚡️ Введите время, через которое прислать вам напоминание.
+                        Формат - ЧЧ:ММ:СС
+                        Например - (01:00:30 - один час, ноль минут, тридцать секунд)
+                        """)
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
@@ -272,7 +274,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡\uFE0F Напишите в чат описание для напоминания.")
+                .text("⚡️Напишите в чат описание для напоминания.")
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
@@ -291,7 +293,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡\uFE0F Напишите в следующем сообщении краткий заголовок напоминания")
+                .text("⚡️ Напишите в следующем сообщении краткий заголовок напоминания")
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(

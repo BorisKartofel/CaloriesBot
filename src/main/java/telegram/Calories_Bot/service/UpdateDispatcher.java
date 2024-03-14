@@ -57,7 +57,7 @@ public class UpdateDispatcher {
         }
         userRepo.save(
                 User.builder()
-                        .action(Action.FREE)
+                        .action(Action.NONE)
                         .registeredAt(LocalDateTime.now())
                         .chatId(chatId)
                         .firstName("Unnamed User")

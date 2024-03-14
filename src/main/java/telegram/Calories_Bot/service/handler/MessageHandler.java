@@ -24,7 +24,7 @@ public class MessageHandler extends AbstractHandler {
         var message = (Message) object;
         var user = userRepo.findByChatId(message.getChatId());
         switch (user.getAction()) {
-            case FREE -> {
+            case NONE -> {
                 return null;
             }
             case SENDING_TIME, SENDING_DESCRIPTION, SENDING_TITLE -> {
