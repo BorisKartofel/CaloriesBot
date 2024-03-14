@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
 import telegram.Calories_Bot.entity.Notification;
-import telegram.Calories_Bot.entity.Status;
+import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.repository.NotificationRepo;
 
 @Slf4j

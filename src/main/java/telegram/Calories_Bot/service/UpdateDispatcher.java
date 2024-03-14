@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
-import telegram.Calories_Bot.entity.Action;
+import telegram.Calories_Bot.entity.enums.Action;
 import telegram.Calories_Bot.entity.User;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.handler.CallbackQueryHandler;

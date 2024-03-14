@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import telegram.Calories_Bot.entity.contract.AbstractEntity;
+import telegram.Calories_Bot.entity.enums.Status;
 
 @Getter
 @Setter

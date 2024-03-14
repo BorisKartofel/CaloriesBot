@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import telegram.Calories_Bot.entity.contract.AbstractEntity;
+import telegram.Calories_Bot.entity.enums.Action;
 
 import java.time.LocalDateTime;
 import java.util.List;

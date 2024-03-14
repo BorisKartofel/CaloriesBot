@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import telegram.Calories_Bot.bot.Bot;
+import telegram.Calories_Bot.entity.enums.Commands;
 import telegram.Calories_Bot.service.contract.AbstractManager;
 import telegram.Calories_Bot.service.contract.CommandListener;
 import telegram.Calories_Bot.service.contract.QueryListener;
@@ -33,38 +34,32 @@ public class MainManager extends AbstractManager implements CommandListener, Que
 
     @Override
     public BotApiMethod<?> mainMenu(CallbackQuery query, Bot bot) {
-        return EditMessageText.builder()
-                .chatId(query.getMessage().getChatId())
-                .messageId(query.getMessage().getMessageId())
-                .text("Выберите действие")
-                .replyMarkup(
-                        keyboardFactory.createInlineKeyboard(
-                                List.of("Уведомления"),
-                                List.of(1),
-                                List.of(notification_main.name())
-                        )
-                )
-                .build();
+        return EditMessageText.builder().chatId(query.getMessage().getChatId()).messageId(query.getMessage().getMessageId()).text("Выберите действие").replyMarkup(keyboardFactory.createInlineKeyboard(List.of("Уведомления"), List.of(1), List.of(notification_main.name()))).build();
     }
 
     @Override
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
-        return SendMessage.builder()
-                .chatId(message.getChatId())
-                .text("Выберите вид уведомления")
-                .replyMarkup(
-                        keyboardFactory.createInlineKeyboard(
-                                List.of("Одноразовое напоминание"),
-                                List.of(1),
-                                List.of(notification_main.name())
-                        )
-                )
-                .build();
+        return SendMessage.builder().chatId(message.getChatId()).text("Выберите вид уведомления").replyMarkup(keyboardFactory.createInlineKeyboard(List.of("Одноразовое напоминание"), List.of(1), List.of(notification_main.name()))).build();
     }
 
     @Override
     public BotApiMethod<?> answerQuery(CallbackQuery query, String[] words, Bot bot) {
         return mainMenu(query, bot);
+    }
+
+    /**
+     * Sends a list of available {@link Commands} to user
+     */
+    public BotApiMethod<?> sendListOfCommands(Message message, Bot bot) {
+
+        StringBuilder messageToSend = new StringBuilder("Доступные команды:\n");
+        List<String> commands = Commands.getListOfBotCommands();
+        for (String command : commands) {
+            messageToSend.append(command);
+            messageToSend.append('\n');
+        }
+
+        return SendMessage.builder().chatId(message.getChatId()).text(messageToSend.toString()).build();
     }
 
 }
