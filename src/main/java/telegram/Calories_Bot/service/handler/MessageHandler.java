@@ -9,8 +9,10 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
+import telegram.Calories_Bot.entity.User;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractHandler;
+import telegram.Calories_Bot.service.manager.MainManager;
 import telegram.Calories_Bot.service.manager.notification.NotificationManager;
 
 @Service
@@ -19,18 +21,21 @@ import telegram.Calories_Bot.service.manager.notification.NotificationManager;
 public class MessageHandler extends AbstractHandler {
     UserRepo userRepo;
     NotificationManager notificationManager;
+    MainManager mainManager;
+
     @Override
     public BotApiMethod<?> answer(BotApiObject object, Bot bot) throws TelegramApiException {
-        var message = (Message) object;
-        var user = userRepo.findByChatId(message.getChatId());
+        Message message = (Message) object;
+        User user = userRepo.findByChatId(message.getChatId());
         switch (user.getAction()) {
-            case FREE -> {
-                return null;
+            case NONE -> {
+                return mainManager.sendListOfCommands(message, bot);
             }
             case SENDING_TIME, SENDING_DESCRIPTION, SENDING_TITLE -> {
                 return notificationManager.answerMessage(message, bot);
             }
+            //TODO Логика добавления продукта, просмотра съеденных калорий за период
         }
-        throw new UnsupportedOperationException();
+        return operationIsNotSupported(message, bot);
     }
 }

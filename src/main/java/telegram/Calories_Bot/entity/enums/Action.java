@@ -1,7 +1,7 @@
-package telegram.Calories_Bot.entity;
+package telegram.Calories_Bot.entity.enums;
 
 public enum Action {
-    FREE,
+    NONE,
     SENDING_TITLE, SENDING_DESCRIPTION, SENDING_TIME;
 }
 

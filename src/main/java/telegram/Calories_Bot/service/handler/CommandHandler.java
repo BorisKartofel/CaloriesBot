@@ -15,6 +15,7 @@ import telegram.Calories_Bot.service.manager.MainManager;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CommandHandler extends AbstractHandler {
+
     MainManager mainManager;
 
     @Override

@@ -15,9 +15,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
-import telegram.Calories_Bot.entity.Action;
+import telegram.Calories_Bot.entity.enums.Action;
 import telegram.Calories_Bot.entity.Notification;
-import telegram.Calories_Bot.entity.Status;
+import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.entity.User;
 import telegram.Calories_Bot.repository.NotificationRepo;
 import telegram.Calories_Bot.repository.UserRepo;
@@ -65,10 +65,10 @@ public class NotificationManager extends AbstractManager implements QueryListene
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
-                .text("###")
+                .text("Выберите вид уведомления")
                 .replyMarkup(
                         keyboardFactory.createInlineKeyboard(
-                                List.of("Добавить уведомление"),
+                                List.of("Добавить одноразовое напоминание"),
                                 List.of(1),
                                 List.of(notification_new.name())
                         )
@@ -109,7 +109,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         notification.setTitle(message.getText());
         notificationRepo.save(notification);
 
-        user.setAction(Action.FREE);
+        user.setAction(Action.NONE);
         userRepo.save(user);
         return mainMenu(message, bot);
     }
@@ -119,7 +119,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         notification.setDescription(message.getText());
         notificationRepo.save(notification);
 
-        user.setAction(Action.FREE);
+        user.setAction(Action.NONE);
         userRepo.save(user);
         return mainMenu(message, bot);
     }
@@ -135,7 +135,8 @@ public class NotificationManager extends AbstractManager implements QueryListene
             notification.setSeconds(seconds);
         } else {
             return SendMessage.builder()
-                    .text("Некорректный формат ввода\nЧЧ:ММ:СС (01:00:30 - один час, ноль минут, тридцать секунд)")
+                    .text("Некорректный формат времени." +
+                            "\nНеобходимый формат - ЧЧ:ММ:СС (01:00:30 - один час, ноль минут, тридцать секунд)")
                     .chatId(message.getChatId())
                     .replyMarkup(
                             keyboardFactory.createInlineKeyboard(
@@ -147,7 +148,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                     .build();
         }
         notificationRepo.save(notification);
-        user.setAction(Action.FREE);
+        user.setAction(Action.NONE);
         userRepo.save(user);
         return mainMenu(message, bot);
     }
@@ -198,15 +199,15 @@ public class NotificationManager extends AbstractManager implements QueryListene
 
     private BotApiMethod<?> sendNotification(CallbackQuery query, String id, Bot bot) throws TelegramApiException {
         var notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
-        if (notification.getTitle() == null  || notification.getTitle().isBlank() || notification.getSeconds() == null) {
+        if (notification.getTitle() == null || notification.getTitle().isBlank() || notification.getSeconds() == null) {
             return AnswerCallbackQuery.builder()
-                            .callbackQueryId(query.getId())
-                            .text("Заполните обязательные значения: Заголовок и Время")
-                            .build();
+                    .callbackQueryId(query.getId())
+                    .text("Заполните обязательные поля: Заголовок и Время")
+                    .build();
         }
         bot.execute(
                 AnswerCallbackQuery.builder()
-                        .text("Уведомление придет к вам через " + notification.getSeconds() + " секунд \uD83D\uDC40")
+                        .text("Уведомление придет через " + notification.getSeconds() + " секунд \uD83D\uDCA9")
                         .callbackQueryId(query.getId())
                         .build()
         );
@@ -250,7 +251,11 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡\uFE0F Введите время, по прошествии которого хотите получить напоминание\nФормат - ЧЧ:ММ:СС\nНапример - (01:30:00) - полтора часа")
+                .text("""
+                        ⚡️ Введите время, через которое прислать вам напоминание.
+                        Формат - ЧЧ:ММ:СС
+                        Например - (01:00:30 - один час, ноль минут, тридцать секунд)
+                        """)
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
@@ -269,7 +274,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡\uFE0F Добавьте или измените описание, просто напишите в чат тест, который бы хотели получить")
+                .text("⚡️Напишите в чат описание для напоминания.")
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
@@ -288,7 +293,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡\uFE0F Опишите краткий заголовок в следующем сообщение, чтобы вам было сразу понятно, что я вам напоминаю")
+                .text("⚡️ Напишите в следующем сообщении краткий заголовок напоминания")
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
