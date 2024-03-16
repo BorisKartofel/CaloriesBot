@@ -9,7 +9,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-
 @Builder
 @Entity
 @Table(name = "users_products")
@@ -22,7 +21,6 @@ public class UserProduct {
 
     @Column(name = "product_id", nullable = false)
     Integer productId;
-
 
     public UserProduct() {
     }
@@ -48,4 +46,5 @@ public class UserProduct {
     public void setProductId(Integer productId) {
         this.productId = productId;
     }
+
 }

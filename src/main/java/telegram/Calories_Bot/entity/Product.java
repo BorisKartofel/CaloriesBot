@@ -1,6 +1,7 @@
 package telegram.Calories_Bot.entity;
 
 import jakarta.persistence.*;
+
 import lombok.Builder;
 
 import java.util.List;
@@ -31,7 +32,8 @@ public class Product {
 
     @ManyToMany(mappedBy = "products")
     private List<User> users;
-
+  
+  
 
     public Product() {
     }
@@ -48,6 +50,7 @@ public class Product {
     }
 
 
+  
     public Integer getId() {
         return id;
     }
@@ -103,4 +106,5 @@ public class Product {
     public void setUsers(List<User> users) {
         this.users = users;
     }
+
 }
