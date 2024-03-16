@@ -9,10 +9,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+
 @Builder
 @Entity
 @Table(name = "users_products")
@@ -27,5 +24,28 @@ public class UserProduct {
     Integer productId;
 
 
+    public UserProduct() {
+    }
 
+    public UserProduct(UUID userId, Integer productId) {
+        this.userId = userId;
+        this.productId = productId;
+    }
+
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public Integer getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Integer productId) {
+        this.productId = productId;
+    }
 }
