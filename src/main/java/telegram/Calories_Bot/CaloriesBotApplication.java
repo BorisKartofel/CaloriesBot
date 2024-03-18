@@ -24,8 +24,6 @@ public class CaloriesBotApplication {
         int size = (products == null) ? 0 : products.size();
         System.out.println(size);
 
-        //TODO Исправить баг с невозможностью достать из Hibernate связанные сущности
-
 //        HTTPRequestSender requestSender = new HTTPRequestSender();
 //        TelegramProperties telegramProperties = applicationContext.getBean(TelegramProperties.class);
 //

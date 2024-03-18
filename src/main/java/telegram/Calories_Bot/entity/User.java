@@ -33,7 +33,7 @@ public class User extends AbstractEntity {
     @OneToMany
     Set<Notification> notifications;
 
-    @ManyToMany()
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_products",
             joinColumns = @JoinColumn(name = "user_id"),
