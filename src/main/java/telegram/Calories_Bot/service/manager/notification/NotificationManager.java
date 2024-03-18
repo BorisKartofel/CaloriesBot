@@ -83,7 +83,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
 
     @Override
     public BotApiMethod<?> answerMessage(Message message, Bot bot) throws TelegramApiException {
-        var user = userRepo.findByChatId(message.getChatId());
+        User user = userRepo.findByChatId(message.getChatId());
         bot.execute(
                 DeleteMessage.builder()
                         .chatId(message.getChatId())
@@ -214,7 +214,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         notification.setStatus(Status.WAITING);
         notificationRepo.save(notification);
         Thread.startVirtualThread(
-                new NotificationContainer(
+                new NotificationRunnableTask(
                         bot,
                         query.getMessage().getChatId(),
                         notification,

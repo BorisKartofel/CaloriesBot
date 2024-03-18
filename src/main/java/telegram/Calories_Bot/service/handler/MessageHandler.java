@@ -13,6 +13,7 @@ import telegram.Calories_Bot.entity.User;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractHandler;
 import telegram.Calories_Bot.service.manager.MainManager;
+import telegram.Calories_Bot.service.manager.ProductManager;
 import telegram.Calories_Bot.service.manager.notification.NotificationManager;
 
 @Service
@@ -22,6 +23,7 @@ public class MessageHandler extends AbstractHandler {
     UserRepo userRepo;
     NotificationManager notificationManager;
     MainManager mainManager;
+    ProductManager productManager;
 
     @Override
     public BotApiMethod<?> answer(BotApiObject object, Bot bot) throws TelegramApiException {
@@ -34,7 +36,10 @@ public class MessageHandler extends AbstractHandler {
             case SENDING_TIME, SENDING_DESCRIPTION, SENDING_TITLE -> {
                 return notificationManager.answerMessage(message, bot);
             }
-            //TODO Логика добавления продукта, просмотра съеденных калорий за период
+            case SENDING_PRODUCT -> {
+                //TODO Логика добавления продукта, просмотра съеденных калорий за период
+                return productManager.answerMessage(message, bot);
+            }
         }
         return operationIsNotSupported(message, bot);
     }

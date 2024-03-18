@@ -34,12 +34,26 @@ public class MainManager extends AbstractManager implements CommandListener, Que
 
     @Override
     public BotApiMethod<?> mainMenu(CallbackQuery query, Bot bot) {
-        return EditMessageText.builder().chatId(query.getMessage().getChatId()).messageId(query.getMessage().getMessageId()).text("Выберите действие").replyMarkup(keyboardFactory.createInlineKeyboard(List.of("Уведомления"), List.of(1), List.of(notification_main.name()))).build();
+        return EditMessageText.builder()
+                .chatId(query.getMessage().getChatId())
+                .messageId(query.getMessage().getMessageId())
+                .text("Выберите действие").replyMarkup(keyboardFactory.createInlineKeyboard(
+                        List.of("Добавить уведомление"),
+                        List.of(1),
+                        List.of(notification_main.name())
+                )).build();
     }
 
     @Override
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
-        return SendMessage.builder().chatId(message.getChatId()).text("Выберите вид уведомления").replyMarkup(keyboardFactory.createInlineKeyboard(List.of("Одноразовое напоминание"), List.of(1), List.of(notification_main.name()))).build();
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text("Выберите действие")
+                .replyMarkup(keyboardFactory.createInlineKeyboard(
+                        List.of("Добавить уведомление"),
+                        List.of(1),
+                        List.of(notification_main.name())
+                )).build();
     }
 
     @Override
