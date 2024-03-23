@@ -39,7 +39,7 @@ import static telegram.Calories_Bot.data.CallbackData.*;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class NotificationManager extends AbstractManager implements QueryListener, CommandListener, MessageListener {
+public class NotificationManager extends AbstractManager implements QueryListener, MessageListener {
     KeyboardFactory keyboardFactory;
     NotificationRepo notificationRepo;
     UserRepo userRepo;
@@ -72,11 +72,6 @@ public class NotificationManager extends AbstractManager implements QueryListene
                         )
                 )
                 .build();
-    }
-
-    @Override
-    public BotApiMethod<?> answerStartCommand(Message message, Bot bot) {
-        return null;
     }
 
     @Override

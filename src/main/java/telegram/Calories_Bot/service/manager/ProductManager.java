@@ -18,6 +18,7 @@ import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.repository.UserProductRepo;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractManager;
+import telegram.Calories_Bot.service.contract.QueryListener;
 import telegram.Calories_Bot.service.factory.KeyboardFactory;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import static telegram.Calories_Bot.data.CallbackData.*;
 
 @Service
 @Slf4j
-public class ProductManager extends AbstractManager {
+public class ProductManager extends AbstractManager implements QueryListener {
 
     private final UserRepo userRepo;
     private final UserProductRepo userProductRepo;
@@ -77,6 +78,7 @@ public class ProductManager extends AbstractManager {
         return null;
     }
 
+    @Override
     public BotApiMethod<?> answerQuery(CallbackQuery query, String[] words, Bot bot) {
         switch (words.length) {
             case 2 -> {
