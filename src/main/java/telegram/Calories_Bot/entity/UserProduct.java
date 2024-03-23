@@ -26,19 +26,15 @@ public class UserProduct extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @Enumerated(EnumType.STRING)
-    Action action;
-
 
 
     public UserProduct() {
     }
 
-    public UserProduct(UUID userId, Integer productId, Status status, Action action) {
+    public UserProduct(UUID userId, Integer productId, Status status) {
         this.userId = userId;
         this.productId = productId;
         this.status = status;
-        this.action = action;
     }
 
 

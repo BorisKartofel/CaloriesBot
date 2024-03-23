@@ -34,7 +34,7 @@ public class MainManager extends AbstractManager implements CommandListener, Que
                 .chatId(message.getChatId())
                 .text("Выберите действие")
                 .replyMarkup(keyboardFactory.createInlineKeyboard(
-                        List.of("Калории", "Уведомления"),
+                        List.of("Продукты", "Уведомления"),
                         List.of(2),
                         List.of(PRODUCT_MAIN.name(), notification_main.name())
                 )).build();
@@ -47,8 +47,8 @@ public class MainManager extends AbstractManager implements CommandListener, Que
                 .messageId(query.getMessage().getMessageId())
                 .text("Выберите действие")
                 .replyMarkup(keyboardFactory.createInlineKeyboard(
-                        List.of("Продукт", "Уведомление"),
-                        List.of(1, 1),
+                        List.of("Продукты", "Уведомления"),
+                        List.of(2),
                         List.of(PRODUCT_MAIN.name(), notification_main.name())
                 )).build();
     }

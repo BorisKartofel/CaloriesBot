@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -11,35 +12,42 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
+import telegram.Calories_Bot.entity.Product;
 import telegram.Calories_Bot.entity.User;
 import telegram.Calories_Bot.entity.UserProduct;
 import telegram.Calories_Bot.entity.enums.Action;
 import telegram.Calories_Bot.entity.enums.Status;
+import telegram.Calories_Bot.repository.ProductRepo;
 import telegram.Calories_Bot.repository.UserProductRepo;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractManager;
+import telegram.Calories_Bot.service.contract.MessageListener;
 import telegram.Calories_Bot.service.contract.QueryListener;
 import telegram.Calories_Bot.service.factory.KeyboardFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static telegram.Calories_Bot.data.CallbackData.*;
 
 @Service
 @Slf4j
-public class ProductManager extends AbstractManager implements QueryListener {
+public class ProductManager extends AbstractManager implements QueryListener, MessageListener {
 
     private final UserRepo userRepo;
     private final UserProductRepo userProductRepo;
+    private final ProductRepo productRepo;
     private final KeyboardFactory keyboardFactory;
 
 
     @Autowired
-    public ProductManager(UserRepo userRepo, UserProductRepo userProductRepo, KeyboardFactory keyboardFactory) {
+    public ProductManager(UserRepo userRepo, UserProductRepo userProductRepo, ProductRepo productRepo, KeyboardFactory keyboardFactory) {
         this.userRepo = userRepo;
         this.userProductRepo = userProductRepo;
+        this.productRepo = productRepo;
         this.keyboardFactory = keyboardFactory;
     }
 
@@ -54,6 +62,7 @@ public class ProductManager extends AbstractManager implements QueryListener {
         return null;
     }
 
+    @Override
     public BotApiMethod<?> answerMessage(Message message, Bot bot) {
 
         try {
@@ -71,18 +80,81 @@ public class ProductManager extends AbstractManager implements QueryListener {
 
         switch (user.getAction()) {
             case SENDING_PRODUCT -> {
-                // TODO Добавить логику
-                return null;
+                return editProduct(message, user, bot);
             }
         }
         return null;
     }
 
+    private BotApiMethod<?> editProduct(Message message, User user, Bot bot) {
+
+        if (message.getText().length() < 3) return replyThatProductTextIsTooShort(message);
+        List<Product> products = productRepo.findFirst16ByNameContainingIgnoreCase(message.getText());
+
+        if (products.size() == 1) return saveProductAsEaten(user, message, products.get(0));
+        return sendMatchingProducts(message, products);
+    }
+
+    private BotApiMethod<?> saveProductAsEaten(User user, Message message, Product product) {
+
+        userProductRepo.save(UserProduct.builder()
+                .userId(user.getId())
+                .productId(product.getId())
+                .status(Status.FINISHED)
+                .build());
+
+        user.setAction(Action.NONE);
+        userRepo.save(user);
+
+        return SendMessage.builder()
+                .text("Съедено калорий - " + product.getKcal() + " ⚡️" +
+                        "\n Белки - " + product.getProtein() +
+                        "\n Жиры - " + product.getFat() +
+                        "\n Углеводы - " + product.getCarbohydrate())
+                .chatId(message.getChatId())
+                .build();
+    }
+
+    private BotApiMethod<?> replyThatProductTextIsTooShort(Message message) {
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text("Текст слишком короткий для того, чтобы я мог найти подходящие продукты")
+                .build();
+    }
+
+    private BotApiMethod<?> sendMatchingProducts(Message message, List<Product> products) {
+        if (products.isEmpty()) {
+            return SendMessage.builder()
+                    .chatId(message.getChatId())
+                    .text("По Вашему запросу не найдено ни одного продукта." +
+                            "\nПопробуйте ввести название по-другому, либо создайте свой продукт, чтобы я его знал." +
+                            "\n(Разработчик торопился и пока что создать кастомный продукт нельзя)")
+                    // TODO Сделать так, чтоб было можно
+                    .build();
+        }
+
+        List<Integer> configurationListForReplyKeyboard = new LinkedList<>();
+        for (int i = 0; i < products.size(); i++) {
+            configurationListForReplyKeyboard.add(1);
+        }
+
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text(String.format("По Вашему запросу найдено %d продуктов", products.size()))
+                .replyMarkup(
+                        keyboardFactory.createReplyKeyboard(
+                                products.stream().map(Product::getName).collect(Collectors.toList()),
+                                configurationListForReplyKeyboard
+                        )
+                )
+                .build();
+    }
+
     @Override
-    public BotApiMethod<?> answerQuery(CallbackQuery query, String[] words, Bot bot) {
-        switch (words.length) {
+    public BotApiMethod<?> answerQuery(CallbackQuery query, String[] callbackDataWords, Bot bot) {
+        switch (callbackDataWords.length) {
             case 2 -> {
-                switch (words[1]) {
+                switch (callbackDataWords[1]) {
                     case "MAIN" -> {
                         // PRODUCT_MAIN
                         return mainProduct(query, bot);
@@ -95,14 +167,16 @@ public class ProductManager extends AbstractManager implements QueryListener {
             }
             case 3 -> {
                 // PRODUCT_CREATE_NEW
-                if (words[2].equals("NEW")) return null;
-                // PRODUCT_RETURN_{some uuid}
-                else if ("RETURN".equals(words[1])) return displayReturnElement(query, UUID.fromString(words[2]));
+                // TODO Логика добавления кастомного продукта
+                if (callbackDataWords[2].equals("NEW")) return null;
+                    // PRODUCT_RETURN_{some uuid}
+                else if (callbackDataWords[1].equals("RETURN"))
+                    return displayReturnElement(query, UUID.fromString(callbackDataWords[2]));
             }
             case 4 -> {
-                if (words[1].equals("SENDING") && words[2].equals("EATEN")) {
+                if (callbackDataWords[1].equals("SENDING") && callbackDataWords[2].equals("EATEN")) {
                     // PRODUCT_SENDING_EATEN_{some id}
-                    return askProduct(query, words[3]);
+                    return askProduct(query, callbackDataWords[3]);
                 }
             }
         }

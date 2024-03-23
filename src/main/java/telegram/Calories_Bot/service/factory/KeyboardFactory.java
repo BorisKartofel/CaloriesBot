@@ -63,9 +63,7 @@ public class KeyboardFactory {
             List<String> text,
             List<Integer> configuration
     ) {
-        if (text.size() != configuration
-                .stream()
-                .reduce(0, Integer::sum)) {
+        if (text.size() != configuration.stream().reduce(0, Integer::sum)) {
             log.warn("Wrong arguments: [" + text + "," + configuration + "]");
             return null;
         }

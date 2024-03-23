@@ -194,7 +194,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     private BotApiMethod<?> sendNotification(CallbackQuery query, String id, Bot bot) throws TelegramApiException {
-        var notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
+        Notification notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
         if (notification.getTitle() == null || notification.getTitle().isBlank() || notification.getSeconds() == null) {
             return AnswerCallbackQuery.builder()
                     .callbackQueryId(query.getId())
