@@ -1,11 +1,11 @@
 package telegram.Calories_Bot.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import telegram.Calories_Bot.entity.contract.AbstractEntity;
+import telegram.Calories_Bot.entity.enums.Action;
+import telegram.Calories_Bot.entity.enums.Status;
 
 import java.util.UUID;
 
@@ -14,23 +14,33 @@ import java.util.UUID;
 @Entity
 @Table(name = "users_products")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserProduct {
+public class UserProduct extends AbstractEntity {
 
-    @Id
-    @Column(name = "user_id", nullable = false)
+
+    @Column(name = "user_id", nullable = true)
     UUID userId;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id", nullable = true)
     Integer productId;
+
+    @Enumerated(EnumType.STRING)
+    Status status;
+
+    @Enumerated(EnumType.STRING)
+    Action action;
+
 
 
     public UserProduct() {
     }
 
-    public UserProduct(UUID userId, Integer productId) {
+    public UserProduct(UUID userId, Integer productId, Status status, Action action) {
         this.userId = userId;
         this.productId = productId;
+        this.status = status;
+        this.action = action;
     }
+
 
 
     public UUID getUserId() {
@@ -48,4 +58,13 @@ public class UserProduct {
     public void setProductId(Integer productId) {
         this.productId = productId;
     }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
 }

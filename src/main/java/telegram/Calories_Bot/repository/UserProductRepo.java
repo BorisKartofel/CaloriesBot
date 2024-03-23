@@ -10,4 +10,6 @@ public interface UserProductRepo extends JpaRepository<UserProduct, UUID> {
 
     List<UserProduct> findUserProductsByUserId(UUID uuid);
 
+
+
 }

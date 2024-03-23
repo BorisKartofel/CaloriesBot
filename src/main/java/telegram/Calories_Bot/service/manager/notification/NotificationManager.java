@@ -15,10 +15,10 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
-import telegram.Calories_Bot.entity.enums.Action;
 import telegram.Calories_Bot.entity.Notification;
-import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.entity.User;
+import telegram.Calories_Bot.entity.enums.Action;
+import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.repository.NotificationRepo;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractManager;
@@ -50,11 +50,9 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 .chatId(message.getChatId())
                 .text("Настройте уведомление")
                 .replyMarkup(
-                        editNotificationReplyMarkup(
-                                String.valueOf(
-                                        userRepo.findByChatId(message.getChatId())
-                                                .getCurrentNotification()
-                                )
+                        editNotificationReplyMarkup(String.valueOf(
+                                userRepo.findByChatId(message.getChatId())
+                                .getCurrentNotification())
                         )
                 )
                 .build();
@@ -77,19 +75,22 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     @Override
-    public BotApiMethod<?> answerCommand(Message message, Bot bot) {
+    public BotApiMethod<?> answerStartCommand(Message message, Bot bot) {
         return null;
     }
 
     @Override
     public BotApiMethod<?> answerMessage(Message message, Bot bot) throws TelegramApiException {
+
         User user = userRepo.findByChatId(message.getChatId());
+
         bot.execute(
                 DeleteMessage.builder()
                         .chatId(message.getChatId())
                         .messageId(message.getMessageId() - 1)
                         .build()
         );
+
         switch (user.getAction()) {
             case SENDING_TIME -> {
                 return editTime(message, user, bot);
@@ -169,7 +170,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
             case 3 -> {
                 switch (words[1]) {
                     case "back" -> {
-                        return editPage(query, words[2]);
+                        return displayEditNotificationElement(query, words[2]);
                     }
                     case "done" -> {
                         return sendNotification(query, words[2], bot);
@@ -236,7 +237,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 .build();
     }
 
-    private BotApiMethod<?> editPage(CallbackQuery query, String id) {
+    private BotApiMethod<?> displayEditNotificationElement(CallbackQuery query, String id) {
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
@@ -288,7 +289,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     private BotApiMethod<?> askTitle(CallbackQuery query, String id) {
-        var user = userRepo.findByChatId(query.getMessage().getChatId());
+        User user = userRepo.findByChatId(query.getMessage().getChatId());
         user.setAction(Action.SENDING_TITLE);
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
@@ -307,25 +308,30 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     private BotApiMethod<?> newNotification(CallbackQuery query, Bot bot) {
-        var user = userRepo.findByChatId(query.getMessage().getChatId());
-        String id = String.valueOf(notificationRepo.save(
+
+        User user = userRepo.findByChatId(query.getMessage().getChatId());
+
+        String uuid = String.valueOf(notificationRepo.save(
                 Notification.builder()
                         .user(user)
                         .status(Status.BUILDING)
                         .build()
         ).getId());
+
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
                 .text("Настройте уведомление")
-                .replyMarkup(editNotificationReplyMarkup(id))
+                .replyMarkup(editNotificationReplyMarkup(uuid))
                 .build();
 
     }
 
-    private InlineKeyboardMarkup editNotificationReplyMarkup(String id) {
-        List<String> text = new ArrayList<>();
-        var notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
+    private InlineKeyboardMarkup editNotificationReplyMarkup(String uuid) {
+
+        List<String> text = new ArrayList<>(3);
+        var notification = notificationRepo.findById(UUID.fromString(uuid)).orElseThrow();
+
         if (notification.getTitle() != null && !notification.getTitle().isBlank()) {
             text.add("✅ Заголовок");
         } else {
@@ -347,9 +353,9 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 text,
                 List.of(2, 1, 2),
                 List.of(
-                        notification_edit_title_.name() + id, notification_edit_time_.name() + id,
-                        notification_edit_d_.name() + id,
-                        main.name(), notification_done_.name() + id
+                        notification_edit_title_.name() + uuid, notification_edit_time_.name() + uuid,
+                        notification_edit_d_.name() + uuid,
+                        main.name(), notification_done_.name() + uuid
                 )
         );
     }

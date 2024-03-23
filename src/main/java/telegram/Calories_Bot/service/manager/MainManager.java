@@ -18,6 +18,7 @@ import telegram.Calories_Bot.service.factory.KeyboardFactory;
 
 import java.util.List;
 
+import static telegram.Calories_Bot.data.CallbackData.PRODUCT_MAIN;
 import static telegram.Calories_Bot.data.CallbackData.notification_main;
 
 @Service
@@ -29,7 +30,14 @@ public class MainManager extends AbstractManager implements CommandListener, Que
 
     @Override
     public BotApiMethod<?> mainMenu(Message message, Bot bot) {
-        return null;
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text("Выберите действие")
+                .replyMarkup(keyboardFactory.createInlineKeyboard(
+                        List.of("Калории", "Уведомления"),
+                        List.of(2),
+                        List.of(PRODUCT_MAIN.name(), notification_main.name())
+                )).build();
     }
 
     @Override
@@ -37,23 +45,17 @@ public class MainManager extends AbstractManager implements CommandListener, Que
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
-                .text("Выберите действие").replyMarkup(keyboardFactory.createInlineKeyboard(
-                        List.of("Добавить уведомление"),
-                        List.of(1),
-                        List.of(notification_main.name())
+                .text("Выберите действие")
+                .replyMarkup(keyboardFactory.createInlineKeyboard(
+                        List.of("Продукт", "Уведомление"),
+                        List.of(1, 1),
+                        List.of(PRODUCT_MAIN.name(), notification_main.name())
                 )).build();
     }
 
     @Override
-    public BotApiMethod<?> answerCommand(Message message, Bot bot) {
-        return SendMessage.builder()
-                .chatId(message.getChatId())
-                .text("Выберите действие")
-                .replyMarkup(keyboardFactory.createInlineKeyboard(
-                        List.of("Добавить уведомление"),
-                        List.of(1),
-                        List.of(notification_main.name())
-                )).build();
+    public BotApiMethod<?> answerStartCommand(Message message, Bot bot) {
+        return mainMenu(message, bot);
     }
 
     @Override

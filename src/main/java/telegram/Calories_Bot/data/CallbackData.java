@@ -6,6 +6,9 @@ public enum CallbackData {
     notification_main, notification_new, notification_edit_title_, notification_edit_d_, notification_edit_time_,
     notification_done_, notification_back_,
 
-    PRODUCT_MAIN;
+
+    PRODUCT_MAIN,
+    PRODUCT_SENDING_EATEN_, PRODUCT_CREATE_NEW, PRODUCT_HAS_BEEN_EATEN, PRODUCT_RETURN_,
+    PRODUCT_ADD;
 
 }

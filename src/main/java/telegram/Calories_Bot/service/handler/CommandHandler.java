@@ -1,8 +1,5 @@
 package telegram.Calories_Bot.service.handler;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,11 +13,10 @@ import telegram.Calories_Bot.service.contract.AbstractHandler;
 import telegram.Calories_Bot.service.manager.MainManager;
 
 @Service
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class CommandHandler extends AbstractHandler {
 
-    MainManager mainManager;
+    private final MainManager mainManager;
 
     @Autowired
     public CommandHandler(MainManager mainManager) {
@@ -31,6 +27,7 @@ public class CommandHandler extends AbstractHandler {
     public BotApiMethod<?> answer(BotApiObject object, Bot bot) {
         Message message = (Message) object;
         if ("/start".equals(message.getText())) {
+
             try {
                 bot.execute(
                         DeleteMessage.builder()
@@ -41,8 +38,11 @@ public class CommandHandler extends AbstractHandler {
             } catch (TelegramApiException e) {
                 log.error(e.getMessage());
             }
-            return mainManager.answerCommand(message, bot);
+
+            return mainManager.answerStartCommand(message, bot);
         }
+
+        //TODO Добавить обработку других команд
         return operationIsNotSupported(message, bot);
     }
 }
