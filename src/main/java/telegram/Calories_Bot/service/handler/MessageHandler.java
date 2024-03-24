@@ -36,7 +36,7 @@ public class MessageHandler extends AbstractHandler {
             case SENDING_TIME, SENDING_DESCRIPTION, SENDING_TITLE -> {
                 return notificationManager.answerMessage(message, bot);
             }
-            case SENDING_PRODUCT -> {
+            case SENDING_PRODUCT_GRAM, SENDING_PRODUCT_NAME -> {
                 //TODO Логика добавления продукта, просмотра съеденных калорий за период
                 return productManager.answerMessage(message, bot);
             }

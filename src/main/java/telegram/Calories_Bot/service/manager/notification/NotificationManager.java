@@ -194,7 +194,9 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     private BotApiMethod<?> sendNotification(CallbackQuery query, String id, Bot bot) throws TelegramApiException {
+
         Notification notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
+
         if (notification.getTitle() == null || notification.getTitle().isBlank() || notification.getSeconds() == null) {
             return AnswerCallbackQuery.builder()
                     .callbackQueryId(query.getId())
@@ -217,6 +219,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                         notificationRepo
                 )
         );
+
         return EditMessageText.builder()
                 .text("✅ Успешно")
                 .chatId(query.getMessage().getChatId())
@@ -226,7 +229,6 @@ public class NotificationManager extends AbstractManager implements QueryListene
                                 List.of("На главную"),
                                 List.of(1),
                                 List.of(main.name())
-
                         )
                 )
                 .build();
@@ -328,22 +330,22 @@ public class NotificationManager extends AbstractManager implements QueryListene
         var notification = notificationRepo.findById(UUID.fromString(uuid)).orElseThrow();
 
         if (notification.getTitle() != null && !notification.getTitle().isBlank()) {
-            text.add("✅ Заголовок");
+            text.add("\uD83D\uDFE2 Заголовок");
         } else {
-            text.add("❌ Заголовок");
+            text.add("\uD83D\uDD34 Заголовок");
         }
         if (notification.getSeconds() != null && notification.getSeconds() != 0) {
-            text.add("✅ Время");
+            text.add("\uD83D\uDFE2 Время");
         } else {
-            text.add("❌ Время");
+            text.add("\uD83D\uDD34 Время");
         }
         if (notification.getDescription() != null && !notification.getDescription().isBlank()) {
-            text.add("✅ Описание");
+            text.add("\uD83D\uDFE2 Описание");
         } else {
-            text.add("❌ Описание");
+            text.add("\uD83D\uDD34 Описание");
         }
         text.add("\uD83D\uDD19 Главная");
-        text.add("\uD83D\uDD50 Готово");
+        text.add("✅ Готово");
         return keyboardFactory.createInlineKeyboard(
                 text,
                 List.of(2, 1, 2),

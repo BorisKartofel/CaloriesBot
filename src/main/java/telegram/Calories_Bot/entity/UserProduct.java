@@ -17,11 +17,14 @@ import java.util.UUID;
 public class UserProduct extends AbstractEntity {
 
 
-    @Column(name = "user_id", nullable = true)
+    @Column(name = "user_id")
     UUID userId;
 
-    @Column(name = "product_id", nullable = true)
+    @Column(name = "product_id")
     Integer productId;
+
+    @Column(name = "product_grams")
+    Integer productGrams;
 
     @Enumerated(EnumType.STRING)
     Status status;
@@ -31,13 +34,12 @@ public class UserProduct extends AbstractEntity {
     public UserProduct() {
     }
 
-    public UserProduct(UUID userId, Integer productId, Status status) {
+    public UserProduct(UUID userId, Integer productId, Integer productGrams, Status status) {
         this.userId = userId;
         this.productId = productId;
+        this.productGrams = productGrams;
         this.status = status;
     }
-
-
 
     public UUID getUserId() {
         return userId;
@@ -53,6 +55,14 @@ public class UserProduct extends AbstractEntity {
 
     public void setProductId(Integer productId) {
         this.productId = productId;
+    }
+
+    public Integer getProductGrams() {
+        return productGrams;
+    }
+
+    public void setProductGrams(Integer productGrams) {
+        this.productGrams = productGrams;
     }
 
     public Status getStatus() {
