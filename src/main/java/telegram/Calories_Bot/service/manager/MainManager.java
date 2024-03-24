@@ -10,6 +10,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import telegram.Calories_Bot.bot.Bot;
 import telegram.Calories_Bot.entity.User;
 import telegram.Calories_Bot.entity.enums.Commands;
+import telegram.Calories_Bot.entity.enums.Status;
+import telegram.Calories_Bot.repository.NotificationRepo;
 import telegram.Calories_Bot.repository.UserProductRepo;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractManager;
@@ -28,13 +30,15 @@ public class MainManager extends AbstractManager implements CommandListener, Que
     private final KeyboardFactory keyboardFactory;
     private final UserRepo userRepo;
     private final UserProductRepo userProductRepo;
+    private final NotificationRepo notificationRepo;
 
 
     @Autowired
-    public MainManager(KeyboardFactory keyboardFactory, UserRepo userRepo, UserProductRepo userProductRepo) {
+    public MainManager(KeyboardFactory keyboardFactory, UserRepo userRepo, UserProductRepo userProductRepo, NotificationRepo notificationRepo) {
         this.keyboardFactory = keyboardFactory;
         this.userRepo = userRepo;
         this.userProductRepo = userProductRepo;
+        this.notificationRepo = notificationRepo;
     }
 
 
@@ -53,6 +57,8 @@ public class MainManager extends AbstractManager implements CommandListener, Que
     @Override
     public BotApiMethod<?> mainMenu(CallbackQuery query, Bot bot) {
 
+        cleanUpProductAndNotificationInBuildingProcessIfExist(query);
+
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
@@ -62,6 +68,15 @@ public class MainManager extends AbstractManager implements CommandListener, Que
                         List.of(2),
                         List.of(PRODUCT_MAIN.name(), notification_main.name())
                 )).build();
+    }
+
+    /**
+     * Method needed in case of some user pressed 'Главная' button while building a Product
+     **/
+    private void cleanUpProductAndNotificationInBuildingProcessIfExist(CallbackQuery query) {
+        User user = userRepo.findByChatId(query.getMessage().getChatId());
+        userProductRepo.deleteUserProductByUserIdAndStatus(user.getId(), Status.BUILDING);
+        notificationRepo.deleteNotificationByUserIdAndStatus(user.getId(), Status.BUILDING);
     }
 
     @Override
