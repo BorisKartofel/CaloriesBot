@@ -27,9 +27,7 @@ public class KeyboardFactory {
             List<Integer> configuration,
             List<String> data
     ) {
-        if (text.size() != data.size() || text.size() != configuration
-                .stream()
-                .reduce(0, Integer::sum)
+        if (text.size() != data.size() || text.size() != configuration.stream().reduce(0, Integer::sum)
         ) {
             log.warn("Wrong arguments: [" + text + "," + data + "," + configuration + "]");
             return null;
@@ -65,9 +63,7 @@ public class KeyboardFactory {
             List<String> text,
             List<Integer> configuration
     ) {
-        if (text.size() != configuration
-                .stream()
-                .reduce(0, Integer::sum)) {
+        if (text.size() != configuration.stream().reduce(0, Integer::sum)) {
             log.warn("Wrong arguments: [" + text + "," + configuration + "]");
             return null;
         }

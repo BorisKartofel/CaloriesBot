@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
@@ -35,7 +36,7 @@ public class UpdateDispatcher {
                 return queryHandler.answer(update.getCallbackQuery(), bot);
             }
             if (update.hasMessage()) {
-                var message = update.getMessage();
+                Message message = update.getMessage();
                 checkUser(message.getChatId());
                 if (message.hasText()) {
                     if (message.getText().charAt(0) == '/') {

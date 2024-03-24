@@ -13,14 +13,14 @@ import telegram.Calories_Bot.repository.NotificationRepo;
 
 @Slf4j
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class NotificationContainer implements Runnable {
+public class NotificationRunnableTask implements Runnable {
 
     Bot bot;
     Long chatId;
     Notification notification;
     NotificationRepo notificationRepo;
 
-    public NotificationContainer(
+    public NotificationRunnableTask(
             Bot bot,
             Long chatId,
             Notification notification,

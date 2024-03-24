@@ -44,12 +44,16 @@ public class User extends AbstractEntity {
     @Column(name = "current_notification_id")
     UUID currentNotification;
 
+    @Column(name = "current_product_uuid")
+    UUID currentProductUUID;
+
 
     public User() {
     }
 
     public User(Long chatId, String firstName, Action action, LocalDateTime registeredAt,
-                Set<Notification> notifications, List<Product> products, UUID currentNotification) {
+                Set<Notification> notifications, List<Product> products, UUID currentNotification,
+                UUID currentProductUUID) {
         this.chatId = chatId;
         this.firstName = firstName;
         this.action = action;
@@ -57,8 +61,8 @@ public class User extends AbstractEntity {
         this.notifications = notifications;
         this.products = products;
         this.currentNotification = currentNotification;
+        this.currentProductUUID = currentProductUUID;
     }
-
 
     public Long getChatId() {
         return chatId;
@@ -114,5 +118,13 @@ public class User extends AbstractEntity {
 
     public void setCurrentNotification(UUID currentNotification) {
         this.currentNotification = currentNotification;
+    }
+
+    public UUID getCurrentProductUUID() {
+        return currentProductUUID;
+    }
+
+    public void setCurrentProductUUID(UUID currentProductUUID) {
+        this.currentProductUUID = currentProductUUID;
     }
 }
