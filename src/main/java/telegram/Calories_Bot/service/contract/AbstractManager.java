@@ -8,6 +8,7 @@ import telegram.Calories_Bot.bot.Bot;
 public abstract class AbstractManager {
 
     public abstract BotApiMethod<?> mainMenu(Message message, Bot bot);
+
     public abstract BotApiMethod<?> mainMenu(CallbackQuery query, Bot bot);
 
 }

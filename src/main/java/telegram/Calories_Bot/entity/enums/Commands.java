@@ -8,13 +8,16 @@ public enum Commands {
     PRODUCT("/product"),
     NOTIFICATION("/notify");
 
+
     private final String command;
+
 
     Commands(String botCommand) {
         this.command = botCommand;
     }
-    
-    public static List<String> getListOfBotCommands(){
+
+
+    public static List<String> getListOfBotCommands() {
         List<String> commands = new LinkedList<>();
         for (Commands command :
                 Commands.values()) {
@@ -22,4 +25,5 @@ public enum Commands {
         }
         return commands;
     }
+
 }

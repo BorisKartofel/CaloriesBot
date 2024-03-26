@@ -1,9 +1,5 @@
-package telegram.Calories_Bot.service.manager.notification;
+package telegram.Calories_Bot.service.manager;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -22,10 +18,10 @@ import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.repository.NotificationRepo;
 import telegram.Calories_Bot.repository.UserRepo;
 import telegram.Calories_Bot.service.contract.AbstractManager;
-import telegram.Calories_Bot.service.contract.CommandListener;
 import telegram.Calories_Bot.service.contract.MessageListener;
 import telegram.Calories_Bot.service.contract.QueryListener;
 import telegram.Calories_Bot.service.factory.KeyboardFactory;
+import telegram.Calories_Bot.service.manager.notification.NotificationRunnableTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,14 +31,17 @@ import java.util.regex.Pattern;
 import static telegram.Calories_Bot.data.CallbackData.*;
 
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class NotificationManager extends AbstractManager implements QueryListener, MessageListener {
-    KeyboardFactory keyboardFactory;
-    NotificationRepo notificationRepo;
-    UserRepo userRepo;
+    private final KeyboardFactory keyboardFactory;
+    private final NotificationRepo notificationRepo;
+    private final UserRepo userRepo;
+
+    public NotificationManager(KeyboardFactory keyboardFactory, NotificationRepo notificationRepo, UserRepo userRepo) {
+        this.keyboardFactory = keyboardFactory;
+        this.notificationRepo = notificationRepo;
+        this.userRepo = userRepo;
+    }
 
     @Override
     public BotApiMethod<?> mainMenu(Message message, Bot bot) {
@@ -52,7 +51,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 .replyMarkup(
                         editNotificationReplyMarkup(String.valueOf(
                                 userRepo.findByChatId(message.getChatId())
-                                .getCurrentNotification())
+                                        .getCurrentNotification())
                         )
                 )
                 .build();
@@ -158,7 +157,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                         return mainMenu(query, bot);
                     }
                     case "new" -> {
-                        return newNotification(query, bot);
+                        return newNotification(query);
                     }
                 }
             }
@@ -179,7 +178,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                             case "title" -> {
                                 return askTitle(query, words[3]);
                             }
-                            case "d" -> {
+                            case "descr" -> {
                                 return askDescription(query, words[3]);
                             }
                             case "time" -> {
@@ -304,7 +303,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 .build();
     }
 
-    private BotApiMethod<?> newNotification(CallbackQuery query, Bot bot) {
+    private BotApiMethod<?> newNotification(CallbackQuery query) {
 
         User user = userRepo.findByChatId(query.getMessage().getChatId());
 
@@ -351,7 +350,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 List.of(2, 1, 2),
                 List.of(
                         notification_edit_title_.name() + uuid, notification_edit_time_.name() + uuid,
-                        notification_edit_d_.name() + uuid,
+                        notification_edit_descr_.name() + uuid,
                         main.name(), notification_done_.name() + uuid
                 )
         );

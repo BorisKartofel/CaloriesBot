@@ -13,4 +13,5 @@ public interface NotificationRepo extends JpaRepository<Notification, UUID> {
 
     @Transactional
     void deleteNotificationByUserIdAndStatus(UUID userId, Status status);
+
 }

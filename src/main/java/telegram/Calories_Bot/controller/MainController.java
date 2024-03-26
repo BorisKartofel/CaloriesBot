@@ -1,8 +1,6 @@
 package telegram.Calories_Bot.controller;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,11 +9,16 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import telegram.Calories_Bot.bot.Bot;
 
 @RestController
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class MainController {
 
-    Bot bot;
+    private final Bot bot;
+
+
+    @Autowired
+    public MainController(Bot bot) {
+        this.bot = bot;
+    }
+
 
     @PostMapping
     public BotApiMethod<?> listener(@RequestBody Update update) {

@@ -1,6 +1,6 @@
 package telegram.Calories_Bot.service.factory;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -12,16 +12,16 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Component
 public class KeyboardFactory {
 
-    /**
-     * @param text Конфигурация текста на кнопках
-     * @param configuration Количество кнопок в ряду
-     * @param data Данные enum CallbackData
-     */
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(KeyboardFactory.class);
 
+    /**
+     * @param text          Конфигурация текста на кнопках
+     * @param configuration Количество кнопок в ряду
+     * @param data          Данные enum CallbackData
+     */
     public InlineKeyboardMarkup createInlineKeyboard(
             List<String> text,
             List<Integer> configuration,

@@ -78,16 +78,16 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
         switch (user.getAction()) {
             case SENDING_PRODUCT_NAME -> {
-                return editProduct(message, user, bot);
+                return editProduct(message, user);
             }
             case SENDING_PRODUCT_GRAM -> {
-                return editGrams(message, user, bot);
+                return editGrams(message, user);
             }
         }
         return null;
     }
 
-    private BotApiMethod<?> editGrams(Message message, User user, Bot bot) {
+    private BotApiMethod<?> editGrams(Message message, User user) {
 
         try {
             int grams = Integer.parseInt(message.getText());
@@ -117,7 +117,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
     }
 
-    private BotApiMethod<?> editProduct(Message message, User user, Bot bot) {
+    private BotApiMethod<?> editProduct(Message message, User user) {
 
         if (message.getText().length() < 3) return replyThatProductTextIsTooShort(message);
 
@@ -165,10 +165,10 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         if (products.isEmpty()) {
             return SendMessage.builder()
                     .chatId(message.getChatId())
-                    .text("По Вашему запросу не найдено ни одного продукта." +
-                            "\nПопробуйте ввести название по-другому, либо создайте свой продукт, чтобы я его знал." +
-                            "\n(Разработчик торопился и пока что создать кастомный продукт нельзя)")
-                    // TODO Сделать так, чтоб было можно
+                    .text("""
+                            По Вашему запросу не найдено ни одного продукта.
+                            Попробуйте ввести название по-другому, либо создайте свой продукт, чтобы я его знал.""")
+                    // TODO Сделать так, чтоб было можно создавать кастомный продукт
                     .build();
         }
 
@@ -197,11 +197,11 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 switch (callbackDataWords[1]) {
                     case "MAIN" -> {
                         // PRODUCT_MAIN
-                        return mainProduct(query, bot);
+                        return mainProduct(query);
                     }
                     case "ADD" -> {
                         // PRODUCT_ADD
-                        return startAddingProduct(query, bot);
+                        return startAddingProduct(query);
                     }
                 }
             }
@@ -233,17 +233,17 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         return null;
     }
 
-        private BotApiMethod<?> saveEatenProduct(CallbackQuery query, String uuid, Bot bot) {
+    private BotApiMethod<?> saveEatenProduct(CallbackQuery query, String uuid, Bot bot) {
 
         Optional<UserProduct> userProduct = userProductRepo.findById(UUID.fromString(uuid));
         if (userProduct.isEmpty() || userProduct.get().getProductId() == null || userProduct.get().getProductGrams() == null) {
-            return AnswerCallbackQuery.builder()
-                    .callbackQueryId(query.getId())
-                    .text("Заполните обязательные поля: Продукт и Граммы \uD83D\uDCA9")
-                    .build();
+            return replyThatProductAndGramsFieldsShouldNotBeEmpty(query);
         }
 
         Optional<Product> product = productRepo.findById(userProduct.get().getProductId());
+        if (product.isEmpty()) {
+            return replyThatProductWithSuchIdDoNotExists(query);
+        }
 
         userProduct.get().setStatus(Status.FINISHED);
         userProductRepo.save(userProduct.get());
@@ -251,10 +251,10 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         try {
             bot.execute(
                     SendMessage.builder()
-                            .text("Съедено калорий - " + product.get().getKcal() + " ⚡️" +
-                                    "\n Белки - " + product.get().getProtein() +
-                                    "\n Жиры - " + product.get().getFat() +
-                                    "\n Углеводы - " + product.get().getCarbohydrate())
+                            .text("Съедено калорий - " + product.get().getKcal() * (userProduct.get().getProductGrams() / 100) + " ⚡️" +
+                                    "\n Белки - " + product.get().getProtein() * (userProduct.get().getProductGrams() / 100) +
+                                    "\n Жиры - " + product.get().getFat() * (userProduct.get().getProductGrams() / 100) +
+                                    "\n Углеводы - " + product.get().getCarbohydrate() * (userProduct.get().getProductGrams() / 100))
                             .chatId(query.getMessage().getChatId())
                             .build()
             );
@@ -276,7 +276,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .build();
     }
 
-    private BotApiMethod<?> mainProduct(CallbackQuery query, Bot bot) {
+    private BotApiMethod<?> mainProduct(CallbackQuery query) {
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
@@ -291,7 +291,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .build();
     }
 
-    private BotApiMethod<?> startAddingProduct(CallbackQuery query, Bot bot) {
+    private BotApiMethod<?> startAddingProduct(CallbackQuery query) {
 
         User user = userRepo.findByChatId(query.getMessage().getChatId());
 
@@ -313,14 +313,15 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
     private InlineKeyboardMarkup editProductReplyMarkup(UUID uuid) {
 
         List<String> text = new ArrayList<>(3);
-        UserProduct userProduct = userProductRepo.findById(uuid).get();
+        Optional<UserProduct> userProduct = userProductRepo.findById(uuid);
+        if (userProduct.isEmpty()) return null;
 
-        if (userProduct.getProductId() != null) {
+        if (userProduct.get().getProductId() != null) {
             text.add("\uD83D\uDFE2 Продукт");
         } else {
             text.add("\uD83D\uDD34 Продукт");
         }
-        if (userProduct.getProductGrams() != null) {
+        if (userProduct.get().getProductGrams() != null) {
             text.add("\uD83D\uDFE2 Граммы");
         } else {
             text.add("\uD83D\uDD34 Граммы");
@@ -390,6 +391,20 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .messageId(query.getMessage().getMessageId())
                 .text("Добавьте продукт")
                 .replyMarkup(editProductReplyMarkup(uuid))
+                .build();
+    }
+
+    private BotApiMethod<?> replyThatProductAndGramsFieldsShouldNotBeEmpty(CallbackQuery query) {
+        return AnswerCallbackQuery.builder()
+                .callbackQueryId(query.getId())
+                .text("Заполните обязательные поля: Продукт и Граммы \uD83D\uDCA9")
+                .build();
+    }
+
+    private BotApiMethod<?> replyThatProductWithSuchIdDoNotExists(CallbackQuery query) {
+        return AnswerCallbackQuery.builder()
+                .callbackQueryId(query.getId())
+                .text("Продукта с таким id не существует \uD83D\uDCA9")
                 .build();
     }
 

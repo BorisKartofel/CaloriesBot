@@ -1,7 +1,5 @@
 package telegram.Calories_Bot.bot;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -10,11 +8,10 @@ import telegram.Calories_Bot.config.TelegramProperties;
 import telegram.Calories_Bot.service.UpdateDispatcher;
 
 @Component
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class Bot extends TelegramWebhookBot {
 
-    TelegramProperties telegramProperties;
-    UpdateDispatcher updateDispatcher;
+    private final TelegramProperties telegramProperties;
+    private final UpdateDispatcher updateDispatcher;
 
     public Bot(TelegramProperties telegramProperties, UpdateDispatcher updateDispatcher) {
         super(telegramProperties.getToken());

@@ -2,9 +2,11 @@ package telegram.Calories_Bot.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 @Builder
 @Entity
 @Table(name = "products")
@@ -48,56 +50,28 @@ public class Product {
     }
 
 
-    public Integer getId() {
-        return id;
-    }
-
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public Float getProtein() {
-        return protein;
-    }
-
     public void setProtein(Float protein) {
         this.protein = protein;
-    }
-
-    public Float getFat() {
-        return fat;
     }
 
     public void setFat(Float fat) {
         this.fat = fat;
     }
 
-    public Float getCarbohydrate() {
-        return carbohydrate;
-    }
-
     public void setCarbohydrate(Float carbohydrate) {
         this.carbohydrate = carbohydrate;
     }
 
-    public Integer getKcal() {
-        return kcal;
-    }
-
     public void setKcal(Integer kcal) {
         this.kcal = kcal;
-    }
-
-    public List<User> getUsers() {
-        return users;
     }
 
     public void setUsers(List<User> users) {

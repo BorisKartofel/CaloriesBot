@@ -16,7 +16,6 @@ public class ProductParser {
     /**
      * @return Список всех продуктов, взятых с сайта. Там их будет +-11 тысяч.
      */
-
     public static LinkedList<Product> getAllProductsFromCalorizatorWebSite() {
 
         LinkedList<Product> products = new LinkedList<>();
@@ -57,7 +56,7 @@ public class ProductParser {
             System.err.println("Не получилось соединиться с сайтом");
         } catch (IOException e) {
             System.err.println("Ошибка ввода-вывода");
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
         return products;
     }

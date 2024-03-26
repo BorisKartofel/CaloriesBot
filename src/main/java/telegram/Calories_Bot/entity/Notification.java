@@ -1,36 +1,65 @@
 package telegram.Calories_Bot.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.Builder;
+import lombok.Getter;
 import telegram.Calories_Bot.entity.contract.AbstractEntity;
 import telegram.Calories_Bot.entity.enums.Status;
 
 @Getter
-@Setter
 @Builder
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "notifications")
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Notification extends AbstractEntity {
 
     @Column(name = "title")
-    String title;
+    private String title;
 
     @Column(name = "description")
-    String description;
+    private String description;
 
     @Enumerated(EnumType.STRING)
-    Status status;
+    private Status status;
 
     @Column(name = "seconds")
-    Integer seconds;
+    private Integer seconds;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    User user;
+    private User user;
+
+
+    public Notification() {
+    }
+
+    public Notification(String title, String description, Status status, Integer seconds, User user) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.seconds = seconds;
+        this.user = user;
+    }
+
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setSeconds(Integer seconds) {
+        this.seconds = seconds;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
 }
 
