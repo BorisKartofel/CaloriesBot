@@ -1,34 +1,32 @@
 package telegram.Calories_Bot.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.Builder;
+import lombok.Getter;
 import telegram.Calories_Bot.entity.contract.AbstractEntity;
-import telegram.Calories_Bot.entity.enums.Action;
 import telegram.Calories_Bot.entity.enums.Status;
 
 import java.util.UUID;
 
 
+@Getter
 @Builder
 @Entity
 @Table(name = "users_products")
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserProduct extends AbstractEntity {
 
 
     @Column(name = "user_id")
-    UUID userId;
+    private UUID userId;
 
     @Column(name = "product_id")
-    Integer productId;
+    private Integer productId;
 
     @Column(name = "product_grams")
-    Integer productGrams;
+    private Integer productGrams;
 
     @Enumerated(EnumType.STRING)
-    Status status;
-
+    private Status status;
 
 
     public UserProduct() {
@@ -41,32 +39,16 @@ public class UserProduct extends AbstractEntity {
         this.status = status;
     }
 
-    public UUID getUserId() {
-        return userId;
-    }
-
     public void setUserId(UUID userId) {
         this.userId = userId;
-    }
-
-    public Integer getProductId() {
-        return productId;
     }
 
     public void setProductId(Integer productId) {
         this.productId = productId;
     }
 
-    public Integer getProductGrams() {
-        return productGrams;
-    }
-
     public void setProductGrams(Integer productGrams) {
         this.productGrams = productGrams;
-    }
-
-    public Status getStatus() {
-        return status;
     }
 
     public void setStatus(Status status) {

@@ -8,10 +8,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import telegram.Calories_Bot.bot.Bot;
 
-import java.util.List;
-
-import static telegram.Calories_Bot.data.CallbackData.notification_main;
-
 public abstract class AbstractHandler {
 
     public abstract BotApiMethod<?> answer(BotApiObject object, Bot bot) throws TelegramApiException;

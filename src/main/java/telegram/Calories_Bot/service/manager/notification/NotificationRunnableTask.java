@@ -1,8 +1,6 @@
 package telegram.Calories_Bot.service.manager.notification;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -11,14 +9,15 @@ import telegram.Calories_Bot.entity.Notification;
 import telegram.Calories_Bot.entity.enums.Status;
 import telegram.Calories_Bot.repository.NotificationRepo;
 
-@Slf4j
-@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+
 public class NotificationRunnableTask implements Runnable {
 
-    Bot bot;
-    Long chatId;
-    Notification notification;
-    NotificationRepo notificationRepo;
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(NotificationRunnableTask.class);
+    protected final Bot bot;
+    protected final Long chatId;
+    protected final Notification notification;
+    protected final NotificationRepo notificationRepo;
+
 
     public NotificationRunnableTask(
             Bot bot,
@@ -32,6 +31,7 @@ public class NotificationRunnableTask implements Runnable {
         this.notificationRepo = notificationRepo;
     }
 
+
     @Override
     public void run() {
         try {
@@ -41,7 +41,7 @@ public class NotificationRunnableTask implements Runnable {
         }
         try {
             bot.execute(
-                sendNotification()
+                    sendNotification()
             );
         } catch (TelegramApiException e) {
             log.error(e.getMessage());
@@ -54,8 +54,8 @@ public class NotificationRunnableTask implements Runnable {
         return SendMessage.builder()
                 .chatId(chatId)
                 .text(
-                        "⚡\uFE0F Напоминание: " + notification.getTitle() + "\n"
-                        + "❗\uFE0F " + notification.getDescription() + "\n\n"
+                        "⚡️ Напоминание: " + notification.getTitle() + "\n"
+                                + "❗️ " + notification.getDescription() + "\n\n"
                 )
                 .build();
     }

@@ -1,6 +1,6 @@
 package telegram.Calories_Bot.service.handler;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.interfaces.BotApiObject;
@@ -13,9 +13,9 @@ import telegram.Calories_Bot.service.contract.AbstractHandler;
 import telegram.Calories_Bot.service.manager.MainManager;
 
 @Service
-@Slf4j
 public class CommandHandler extends AbstractHandler {
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(CommandHandler.class);
     private final MainManager mainManager;
 
     @Autowired
