@@ -26,6 +26,7 @@ import telegram.Calories_Bot.service.contract.MessageListener;
 import telegram.Calories_Bot.service.contract.QueryListener;
 import telegram.Calories_Bot.service.factory.KeyboardFactory;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,6 @@ import static telegram.Calories_Bot.data.CallbackData.*;
 @Service
 @Slf4j
 public class ProductManager extends AbstractManager implements QueryListener, MessageListener {
-
     private final UserRepo userRepo;
     private final UserProductRepo userProductRepo;
     private final ProductRepo productRepo;
@@ -42,7 +42,8 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
 
     @Autowired
-    public ProductManager(UserRepo userRepo, UserProductRepo userProductRepo, ProductRepo productRepo, KeyboardFactory keyboardFactory) {
+    public ProductManager(UserRepo userRepo, UserProductRepo userProductRepo, ProductRepo productRepo,
+                          KeyboardFactory keyboardFactory) {
         this.userRepo = userRepo;
         this.userProductRepo = userProductRepo;
         this.productRepo = productRepo;
@@ -83,8 +84,75 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
             case SENDING_PRODUCT_GRAM -> {
                 return editGrams(message, user);
             }
+            case SENDING_PRODUCT_PERIOD -> {
+                return sendInfoForAPeriod(message, user);
+            }
         }
         return null;
+    }
+
+    private BotApiMethod<?> sendInfoForAPeriod(Message message, User user) {
+
+        try {
+            int pastDays = Integer.parseInt(message.getText());
+            if (pastDays == 0) return replyThatDataIsIncorrect(message);
+            LocalDateTime pastTime = LocalDateTime.now().minusDays(pastDays);
+
+            user.setAction(Action.NONE);
+            userRepo.save(user);
+
+            Product accumulativeProduct = new Product(0, null, 0f, 0f, 0f, 0, null);
+            List<UserProduct> userProducts = userProductRepo.findUserProductsByEatingTimeIsGreaterThan(pastTime);
+            HashMap<Integer, Integer> uniqueAccumulativeProductIdsAndGrams = new HashMap<>();
+
+            for (UserProduct userProduct : userProducts) {
+                if (uniqueAccumulativeProductIdsAndGrams.containsKey(userProduct.getProductId()))
+                    uniqueAccumulativeProductIdsAndGrams.put(userProduct.getProductId(),
+                            uniqueAccumulativeProductIdsAndGrams.get(userProduct.getProductId()) + userProduct.getProductGrams());
+                else
+                    uniqueAccumulativeProductIdsAndGrams.put(userProduct.getProductId(), userProduct.getProductGrams());
+            }
+
+            for (var uniqueProductsEntrySet : uniqueAccumulativeProductIdsAndGrams.entrySet()) {
+                Product product = productRepo.findById(uniqueProductsEntrySet.getKey()).get();
+
+                accumulativeProduct.setKcal(
+                        accumulativeProduct.getKcal() + (product.getKcal() * uniqueProductsEntrySet.getValue() / 100)
+                );
+                accumulativeProduct.setProtein(
+                        accumulativeProduct.getProtein() + (product.getProtein() * uniqueProductsEntrySet.getValue() / 100)
+                );
+                accumulativeProduct.setFat(
+                        accumulativeProduct.getFat() + (product.getFat() * uniqueProductsEntrySet.getValue() / 100)
+                );
+                accumulativeProduct.setCarbohydrate(
+                        accumulativeProduct.getCarbohydrate() + (product.getCarbohydrate() * uniqueProductsEntrySet.getValue() / 100)
+                );
+            }
+
+            return SendMessage.builder()
+                    .chatId(message.getChatId())
+                    .text(String.format("Статистика за %s\nКалории - %d\nБелки - %.2f\nЖиры - %.2f\nУглеводы - %.2f",
+                                    amountOfDaysInCorrectDaysDeclination(pastDays),
+                                    accumulativeProduct.getKcal(),
+                                    accumulativeProduct.getProtein(),
+                                    accumulativeProduct.getFat(),
+                                    accumulativeProduct.getCarbohydrate())
+                    )
+                    .build();
+
+        } catch (NumberFormatException e) {
+            replyThatDataIsIncorrect(message);
+        }
+
+        return null;
+    }
+
+    private String amountOfDaysInCorrectDaysDeclination(int pastDays) {
+        if (pastDays % 10 == 1 && pastDays != 11) return pastDays + " день:";
+        else if (pastDays % 10 < 5 && pastDays % 100 != 12 && pastDays % 100 != 13 && pastDays % 100 != 14)
+            return pastDays + " дня:";
+        else return pastDays + "дней:";
     }
 
     private BotApiMethod<?> editGrams(Message message, User user) {
@@ -92,7 +160,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         try {
             int grams = Integer.parseInt(message.getText());
 
-            if (grams == 0) return replyThatProductGramsAreIncorrect(message);
+            if (grams == 0) return replyThatDataIsIncorrect(message);
 
             UserProduct userProduct = userProductRepo.findById(user.getCurrentProductUUID()).orElseThrow();
 
@@ -107,11 +175,11 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
             return SendMessage.builder()
                     .chatId(message.getChatId())
                     .text("Настройте продукт")
-                    .replyMarkup(editProductReplyMarkup(userProduct.getId()))
+                    .replyMarkup(replyMarkupForEditingProduct(userProduct.getId()))
                     .build();
 
         } catch (NumberFormatException e) {
-            return replyThatProductGramsAreIncorrect(message);
+            return replyThatDataIsIncorrect(message);
         }
 
 
@@ -139,7 +207,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 return SendMessage.builder()
                         .chatId(message.getChatId())
                         .text("Настройте продукт")
-                        .replyMarkup(editProductReplyMarkup(userProduct.getId()))
+                        .replyMarkup(replyMarkupForEditingProduct(userProduct.getId()))
                         .build();
             }
         }
@@ -154,10 +222,10 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .build();
     }
 
-    private BotApiMethod<?> replyThatProductGramsAreIncorrect(Message message) {
+    private BotApiMethod<?> replyThatDataIsIncorrect(Message message) {
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text("Количество грамм написано некорректно. Напишите число (больше нуля)")
+                .text("Некорректные данные. Попробуйте еще раз")
                 .build();
     }
 
@@ -179,10 +247,10 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text(String.format("По Вашему запросу найдено %d продуктов", products.size()))
+                .text(String.format("По Вашему запросу найдено продуктов: " + products.size()))
                 .replyMarkup(
                         keyboardFactory.createReplyKeyboard(
-                                products.stream().map(Product::getName).collect(Collectors.toList()),
+                                products.stream().map(Product::getName).sorted(Comparator.comparingInt(String::length)).collect(Collectors.toList()),
                                 configurationListForReplyKeyboard
                         )
                 )
@@ -227,10 +295,39 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
             }
             case 5 -> {
                 // PRODUCT_HAS_BEEN_EATEN_{uuid}
-                if (callbackDataWords[3].equals("EATEN")) return saveEatenProduct(query, callbackDataWords[4], bot);
+                if (callbackDataWords[2].equals("BEEN") && callbackDataWords[3].equals("EATEN"))
+                    return saveEatenProduct(query, callbackDataWords[4], bot);
+                // PRODUCT_SHOW_EATEN_PAST_{amount of days}
+                if (callbackDataWords[3].equals("PAST"))
+                    return eatenCaloriesForSpecifiedPeriod(query, bot);
             }
         }
         return null;
+    }
+
+    private BotApiMethod<?> eatenCaloriesForSpecifiedPeriod(CallbackQuery query, Bot bot) {
+        return askPeriod(query, bot);
+    }
+
+    private BotApiMethod<?> askPeriod(CallbackQuery query, Bot bot) {
+
+        User user = userRepo.findByChatId(query.getMessage().getChatId());
+        user.setAction(Action.SENDING_PRODUCT_PERIOD);
+        userRepo.save(user);
+
+        return EditMessageText.builder()
+                .text("⚡️ Напишите числом, за сколько прошедших дней Вам выдать статистику")
+                .messageId(query.getMessage().getMessageId())
+                .chatId(query.getMessage().getChatId())
+                .replyMarkup(
+                        keyboardFactory.createInlineKeyboard(
+                                List.of("\uD83D\uDFE1 Отмена"),
+                                List.of(1),
+                                List.of(main.name())
+                        )
+                )
+                .build();
+
     }
 
     private BotApiMethod<?> saveEatenProduct(CallbackQuery query, String uuid, Bot bot) {
@@ -251,10 +348,10 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         try {
             bot.execute(
                     SendMessage.builder()
-                            .text("Съедено калорий - " + product.get().getKcal() * (userProduct.get().getProductGrams() / 100) + " ⚡️" +
-                                    "\n Белки - " + product.get().getProtein() * (userProduct.get().getProductGrams() / 100) +
-                                    "\n Жиры - " + product.get().getFat() * (userProduct.get().getProductGrams() / 100) +
-                                    "\n Углеводы - " + product.get().getCarbohydrate() * (userProduct.get().getProductGrams() / 100))
+                            .text("Съедено калорий - " + product.get().getKcal() * userProduct.get().getProductGrams() / 100 + " ⚡️" +
+                                    "\n Белки - " + product.get().getProtein() * userProduct.get().getProductGrams() / 100 +
+                                    "\n Жиры - " + product.get().getFat() * userProduct.get().getProductGrams() / 100 +
+                                    "\n Углеводы - " + product.get().getCarbohydrate() * userProduct.get().getProductGrams() / 100)
                             .chatId(query.getMessage().getChatId())
                             .build()
             );
@@ -283,9 +380,9 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .text("Выберите действие")
                 .replyMarkup(
                         keyboardFactory.createInlineKeyboard(
-                                List.of("Добавить съеденый продукт"),
-                                List.of(1),
-                                List.of(PRODUCT_ADD.name())
+                                List.of("Добавить съеденный продукт", "Съеденные калории за период"),
+                                List.of(1, 1),
+                                List.of(PRODUCT_ADD.name(), PRODUCT_SHOW_EATEN_PAST_DAYS.name())
                         )
                 )
                 .build();
@@ -299,6 +396,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 UserProduct.builder()
                         .userId(user.getId())
                         .status(Status.BUILDING)
+                        .eatingTime(LocalDateTime.now())
                         .build()
         ).getId();
 
@@ -306,11 +404,11 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
                 .text("Добавьте продукт")
-                .replyMarkup(editProductReplyMarkup(uuid))
+                .replyMarkup(replyMarkupForEditingProduct(uuid))
                 .build();
     }
 
-    private InlineKeyboardMarkup editProductReplyMarkup(UUID uuid) {
+    private InlineKeyboardMarkup replyMarkupForEditingProduct(UUID uuid) {
 
         List<String> text = new ArrayList<>(3);
         Optional<UserProduct> userProduct = userProductRepo.findById(uuid);
@@ -319,12 +417,12 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         if (userProduct.get().getProductId() != null) {
             text.add("\uD83D\uDFE2 Продукт");
         } else {
-            text.add("\uD83D\uDD34 Продукт");
+            text.add("\uD83D\uDFE1 Добавить продукт");
         }
         if (userProduct.get().getProductGrams() != null) {
             text.add("\uD83D\uDFE2 Граммы");
         } else {
-            text.add("\uD83D\uDD34 Граммы");
+            text.add("\uD83D\uDFE1 Добавить граммы");
         }
         text.add("\uD83D\uDD19 Главная");
         text.add("✅ Готово");
@@ -390,7 +488,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
                 .text("Добавьте продукт")
-                .replyMarkup(editProductReplyMarkup(uuid))
+                .replyMarkup(replyMarkupForEditingProduct(uuid))
                 .build();
     }
 

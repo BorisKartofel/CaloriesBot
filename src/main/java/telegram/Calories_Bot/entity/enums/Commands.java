@@ -6,7 +6,7 @@ import java.util.List;
 public enum Commands {
     START("/start"),
     PRODUCT("/product"),
-    NOTIFICATION("/notify");
+    TIMER("/timer");
 
 
     private final String command;
