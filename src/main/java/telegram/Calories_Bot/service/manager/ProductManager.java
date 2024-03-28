@@ -79,23 +79,23 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
         switch (user.getAction()) {
             case SENDING_PRODUCT_NAME -> {
-                return editProduct(message, user);
+                return editProduct(message, user, bot);
             }
             case SENDING_PRODUCT_GRAM -> {
-                return editGrams(message, user);
+                return editGrams(message, user, bot);
             }
             case SENDING_PRODUCT_PERIOD -> {
-                return sendInfoForAPeriod(message, user);
+                return sendInfoForAPeriod(message, user, bot);
             }
         }
         return null;
     }
 
-    private BotApiMethod<?> sendInfoForAPeriod(Message message, User user) {
+    private BotApiMethod<?> sendInfoForAPeriod(Message message, User user, Bot bot) {
 
         try {
             int pastDays = Integer.parseInt(message.getText());
-            if (pastDays == 0) return replyThatDataIsIncorrect(message);
+            if (pastDays == 0) return replyThatDataIsIncorrect(message, bot);
             LocalDateTime pastTime = LocalDateTime.now().minusDays(pastDays);
 
             user.setAction(Action.NONE);
@@ -130,37 +130,42 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 );
             }
 
+            deleteMessage(message, bot);
+
             return SendMessage.builder()
                     .chatId(message.getChatId())
-                    .text(String.format("Статистика за %s\nКалории - %d\nБелки - %.2f\nЖиры - %.2f\nУглеводы - %.2f",
-                                    amountOfDaysInCorrectDaysDeclination(pastDays),
-                                    accumulativeProduct.getKcal(),
-                                    accumulativeProduct.getProtein(),
-                                    accumulativeProduct.getFat(),
-                                    accumulativeProduct.getCarbohydrate())
+                    .text(String.format("Статистика за период с %s по %s:\nКалории - %d\nБелки - %.2f\nЖиры - %.2f\nУглеводы - %.2f",
+                            pastTime.toString(),
+                            LocalDateTime.now().toString(),
+                            accumulativeProduct.getKcal(),
+                            accumulativeProduct.getProtein(),
+                            accumulativeProduct.getFat(),
+                            accumulativeProduct.getCarbohydrate())
                     )
                     .build();
 
         } catch (NumberFormatException e) {
-            replyThatDataIsIncorrect(message);
+            replyThatDataIsIncorrect(message, bot);
         }
 
         return null;
     }
 
+/*
     private String amountOfDaysInCorrectDaysDeclination(int pastDays) {
         if (pastDays % 10 == 1 && pastDays != 11) return pastDays + " день:";
         else if (pastDays % 10 < 5 && pastDays % 100 != 12 && pastDays % 100 != 13 && pastDays % 100 != 14)
             return pastDays + " дня:";
         else return pastDays + "дней:";
     }
+*/
 
-    private BotApiMethod<?> editGrams(Message message, User user) {
+    private BotApiMethod<?> editGrams(Message message, User user,  Bot bot) {
 
         try {
             int grams = Integer.parseInt(message.getText());
 
-            if (grams == 0) return replyThatDataIsIncorrect(message);
+            if (grams == 0) return replyThatDataIsIncorrect(message, bot);
 
             UserProduct userProduct = userProductRepo.findById(user.getCurrentProductUUID()).orElseThrow();
 
@@ -179,15 +184,27 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                     .build();
 
         } catch (NumberFormatException e) {
-            return replyThatDataIsIncorrect(message);
+
+            try {
+                bot.execute(
+                        DeleteMessage.builder()
+                                .chatId(message.getChatId())
+                                .messageId(message.getMessageId())
+                                .build()
+                );
+            } catch (TelegramApiException err) {
+                log.error(err.getMessage());
+            }
+
+            return replyThatDataIsIncorrect(message, bot);
         }
 
 
     }
 
-    private BotApiMethod<?> editProduct(Message message, User user) {
+    private BotApiMethod<?> editProduct(Message message, User user, Bot bot) {
 
-        if (message.getText().length() < 3) return replyThatProductTextIsTooShort(message);
+        if (message.getText().length() < 3) return replyThatProductTextIsTooShort(message, bot);
 
         List<Product> products = productRepo.findAllByNameContainingIgnoreCase(message.getText());
         UserProduct userProduct = userProductRepo.findById(user.getCurrentProductUUID()).orElseThrow();
@@ -212,24 +229,33 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
             }
         }
 
-        return sendMatchingProducts(message, products);
+        return sendMatchingProducts(message, products, bot);
     }
 
-    private BotApiMethod<?> replyThatProductTextIsTooShort(Message message) {
+    private BotApiMethod<?> replyThatProductTextIsTooShort(Message message,  Bot bot) {
+
+        deleteMessage(message, bot);
+
         return SendMessage.builder()
                 .chatId(message.getChatId())
                 .text("Текст слишком короткий для того, чтобы я мог найти подходящие продукты")
                 .build();
     }
 
-    private BotApiMethod<?> replyThatDataIsIncorrect(Message message) {
+    private BotApiMethod<?> replyThatDataIsIncorrect(Message message, Bot bot) {
+
+        deleteMessage(message, bot);
+
         return SendMessage.builder()
                 .chatId(message.getChatId())
                 .text("Некорректные данные. Попробуйте еще раз")
                 .build();
     }
 
-    private BotApiMethod<?> sendMatchingProducts(Message message, List<Product> products) {
+    private BotApiMethod<?> sendMatchingProducts(Message message, List<Product> products, Bot bot) {
+
+        deleteMessage(message, bot);
+
         if (products.isEmpty()) {
             return SendMessage.builder()
                     .chatId(message.getChatId())
@@ -345,22 +371,13 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         userProduct.get().setStatus(Status.FINISHED);
         userProductRepo.save(userProduct.get());
 
-        try {
-            bot.execute(
-                    SendMessage.builder()
-                            .text("Съедено калорий - " + product.get().getKcal() * userProduct.get().getProductGrams() / 100 + " ⚡️" +
-                                    "\n Белки - " + product.get().getProtein() * userProduct.get().getProductGrams() / 100 +
-                                    "\n Жиры - " + product.get().getFat() * userProduct.get().getProductGrams() / 100 +
-                                    "\n Углеводы - " + product.get().getCarbohydrate() * userProduct.get().getProductGrams() / 100)
-                            .chatId(query.getMessage().getChatId())
-                            .build()
-            );
-        } catch (TelegramApiException e) {
-            log.error(e.getMessage());
-        }
+        String text = "Съедено калорий - " + product.get().getKcal() * userProduct.get().getProductGrams() / 100 + " ⚡️" +
+                "\n Белки - " + product.get().getProtein() * userProduct.get().getProductGrams() / 100 +
+                "\n Жиры - " + product.get().getFat() * userProduct.get().getProductGrams() / 100 +
+                "\n Углеводы - " + product.get().getCarbohydrate() * userProduct.get().getProductGrams() / 100;
 
         return EditMessageText.builder()
-                .text("✅ Успешно")
+                .text(text)
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
                 .replyMarkup(
@@ -505,5 +522,6 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 .text("Продукта с таким id не существует \uD83D\uDCA9")
                 .build();
     }
+
 
 }

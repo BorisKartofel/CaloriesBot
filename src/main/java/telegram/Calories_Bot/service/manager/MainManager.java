@@ -100,7 +100,9 @@ public class MainManager extends AbstractManager implements CommandListener, Que
     /**
      * Sends a list of available {@link Commands} to user
      */
-    public BotApiMethod<?> sendListOfCommands(Message message) {
+    public BotApiMethod<?> sendListOfCommands(Message message, Bot bot) {
+
+        deleteMessage(message, bot);
 
         StringBuilder messageToSend = new StringBuilder("Доступные команды:\n");
         List<String> commands = Commands.getListOfBotCommands();
