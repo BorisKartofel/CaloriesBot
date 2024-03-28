@@ -1,5 +1,7 @@
 package telegram.Calories_Bot.service.manager;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -25,6 +27,7 @@ import telegram.Calories_Bot.service.manager.notification.NotificationRunnableTa
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -33,6 +36,7 @@ import static telegram.Calories_Bot.data.CallbackData.*;
 
 @Service
 public class NotificationManager extends AbstractManager implements QueryListener, MessageListener {
+    public final Logger log = LogManager.getLogger();
     private final KeyboardFactory keyboardFactory;
     private final NotificationRepo notificationRepo;
     private final UserRepo userRepo;
@@ -47,11 +51,10 @@ public class NotificationManager extends AbstractManager implements QueryListene
     public BotApiMethod<?> mainMenu(Message message, Bot bot) {
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text("Настройте уведомление")
+                .text("Настройте таймер")
                 .replyMarkup(
-                        editNotificationReplyMarkup(String.valueOf(
-                                userRepo.findByChatId(message.getChatId())
-                                        .getCurrentNotification())
+                        editNotificationReplyMarkup(
+                                String.valueOf(userRepo.findByChatId(message.getChatId()).getCurrentNotification())
                         )
                 )
                 .build();
@@ -65,7 +68,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
                 .text("Выберите вид уведомления")
                 .replyMarkup(
                         keyboardFactory.createInlineKeyboard(
-                                List.of("Добавить одноразовое напоминание"),
+                                List.of("Таймер"),
                                 List.of(1),
                                 List.of(notification_new.name())
                         )
@@ -74,16 +77,20 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     @Override
-    public BotApiMethod<?> answerMessage(Message message, Bot bot) throws TelegramApiException {
+    public BotApiMethod<?> answerMessage(Message message, Bot bot) {
 
         User user = userRepo.findByChatId(message.getChatId());
 
-        bot.execute(
-                DeleteMessage.builder()
-                        .chatId(message.getChatId())
-                        .messageId(message.getMessageId() - 1)
-                        .build()
-        );
+        try {
+            bot.execute(
+                    DeleteMessage.builder()
+                            .chatId(message.getChatId())
+                            .messageId(message.getMessageId() - 1)
+                            .build()
+            );
+        } catch (TelegramApiException e) {
+            log.warn(e.getMessage());
+        }
 
         switch (user.getAction()) {
             case SENDING_TIME -> {
@@ -149,7 +156,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
     }
 
     @Override
-    public BotApiMethod<?> answerQuery(CallbackQuery query, String[] words, Bot bot) throws TelegramApiException {
+    public BotApiMethod<?> answerQuery(CallbackQuery query, String[] words, Bot bot) {
         switch (words.length) {
             case 2 -> {
                 switch (words[1]) {
@@ -192,29 +199,40 @@ public class NotificationManager extends AbstractManager implements QueryListene
         return null;
     }
 
-    private BotApiMethod<?> sendNotification(CallbackQuery query, String id, Bot bot) throws TelegramApiException {
+    private BotApiMethod<?> sendNotification(CallbackQuery query, String id, Bot bot) {
 
-        Notification notification = notificationRepo.findById(UUID.fromString(id)).orElseThrow();
+        Optional<Notification> notification = notificationRepo.findById(UUID.fromString(id));
 
-        if (notification.getTitle() == null || notification.getTitle().isBlank() || notification.getSeconds() == null) {
+        if (notification.isEmpty()) return AnswerCallbackQuery.builder()
+                .callbackQueryId(query.getId())
+                .text("Уведомления не существует")
+                .build();
+
+        if (notification.get().getTitle() == null || notification.get().getTitle().isBlank() || notification.get().getSeconds() == null) {
             return AnswerCallbackQuery.builder()
                     .callbackQueryId(query.getId())
                     .text("Заполните обязательные поля: Заголовок и Время")
                     .build();
         }
-        bot.execute(
-                AnswerCallbackQuery.builder()
-                        .text("Уведомление придет через " + notification.getSeconds() + " секунд \uD83D\uDCA9")
-                        .callbackQueryId(query.getId())
-                        .build()
-        );
-        notification.setStatus(Status.WAITING);
-        notificationRepo.save(notification);
+
+        try {
+            bot.execute(
+                    AnswerCallbackQuery.builder()
+                            .text("Таймер сработает через " + notification.get().getSeconds() + " секунд \uD83D\uDCA9")
+                            .callbackQueryId(query.getId())
+                            .build()
+            );
+        } catch (TelegramApiException e) {
+            log.warn(e.getMessage());
+        }
+
+        notification.get().setStatus(Status.WAITING);
+        notificationRepo.save(notification.get());
         Thread.startVirtualThread(
                 new NotificationRunnableTask(
                         bot,
                         query.getMessage().getChatId(),
-                        notification,
+                        notification.get(),
                         notificationRepo
                 )
         );
@@ -237,7 +255,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
-                .text("Настройте уведомление")
+                .text("Настройте таймер")
                 .replyMarkup(editNotificationReplyMarkup(id))
                 .build();
     }
@@ -249,7 +267,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         userRepo.save(user);
         return EditMessageText.builder()
                 .text("""
-                        ⚡️ Введите время, через которое прислать вам напоминание.
+                        ⚡️ Введите время, через которое сработает таймер.
                         Формат - ЧЧ:ММ:СС
                         Например - (01:00:30 - один час, ноль минут, тридцать секунд)
                         """)
@@ -271,7 +289,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡️Напишите в чат описание для напоминания.")
+                .text("⚡️Напишите в чат описание для таймера (не обязательно).")
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
@@ -290,7 +308,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         user.setCurrentNotification(UUID.fromString(id));
         userRepo.save(user);
         return EditMessageText.builder()
-                .text("⚡️ Напишите в следующем сообщении краткий заголовок напоминания")
+                .text("⚡️ Напишите в следующем сообщении краткий заголовок таймера")
                 .messageId(query.getMessage().getMessageId())
                 .chatId(query.getMessage().getChatId())
                 .replyMarkup(
@@ -317,7 +335,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
                 .messageId(query.getMessage().getMessageId())
-                .text("Настройте уведомление")
+                .text("Настройте таймер")
                 .replyMarkup(editNotificationReplyMarkup(uuid))
                 .build();
 
@@ -326,22 +344,24 @@ public class NotificationManager extends AbstractManager implements QueryListene
     private InlineKeyboardMarkup editNotificationReplyMarkup(String uuid) {
 
         List<String> text = new ArrayList<>(3);
-        var notification = notificationRepo.findById(UUID.fromString(uuid)).orElseThrow();
+        Optional<Notification> notification = notificationRepo.findById(UUID.fromString(uuid));
 
-        if (notification.getTitle() != null && !notification.getTitle().isBlank()) {
+        if (notification.isEmpty()) return thisActionIsNotAvailableReplyMarkup();
+
+        if (notification.get().getTitle() != null && !notification.get().getTitle().isBlank()) {
             text.add("\uD83D\uDFE2 Заголовок");
         } else {
-            text.add("\uD83D\uDD34 Заголовок");
+            text.add("\uD83D\uDFE1 Заголовок");
         }
-        if (notification.getSeconds() != null && notification.getSeconds() != 0) {
+        if (notification.get().getSeconds() != null && notification.get().getSeconds() != 0) {
             text.add("\uD83D\uDFE2 Время");
         } else {
-            text.add("\uD83D\uDD34 Время");
+            text.add("\uD83D\uDFE1 Время");
         }
-        if (notification.getDescription() != null && !notification.getDescription().isBlank()) {
+        if (notification.get().getDescription() != null && !notification.get().getDescription().isBlank()) {
             text.add("\uD83D\uDFE2 Описание");
         } else {
-            text.add("\uD83D\uDD34 Описание");
+            text.add("\uD83D\uDFE1 Описание");
         }
         text.add("\uD83D\uDD19 Главная");
         text.add("✅ Готово");
@@ -353,6 +373,14 @@ public class NotificationManager extends AbstractManager implements QueryListene
                         notification_edit_descr_.name() + uuid,
                         main.name(), notification_done_.name() + uuid
                 )
+        );
+    }
+
+    private InlineKeyboardMarkup thisActionIsNotAvailableReplyMarkup() {
+        return keyboardFactory.createInlineKeyboard(
+                List.of("Это действие недоступно. Нажмите, чтобы вернуться на Главную"),
+                List.of(1),
+                List.of(main.name())
         );
     }
 }

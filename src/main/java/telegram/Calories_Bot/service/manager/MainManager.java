@@ -58,6 +58,7 @@ public class MainManager extends AbstractManager implements CommandListener, Que
     public BotApiMethod<?> mainMenu(CallbackQuery query, Bot bot) {
 
         cleanUpProductAndNotificationInBuildingProcessIfExist(query);
+        setUserActionFromSendingProductPeriodToNone(query);
 
         return EditMessageText.builder()
                 .chatId(query.getMessage().getChatId())
@@ -68,6 +69,13 @@ public class MainManager extends AbstractManager implements CommandListener, Que
                         List.of(2),
                         List.of(PRODUCT_MAIN.name(), notification_main.name())
                 )).build();
+    }
+
+    /**
+     * Method needed in case of some user pressed 'Отмена' button while setting a product period
+     **/
+    private void setUserActionFromSendingProductPeriodToNone(CallbackQuery query) {
+        userRepo.updateActionToNoneByChatId(query.getMessage().getChatId());
     }
 
     /**
@@ -101,7 +109,10 @@ public class MainManager extends AbstractManager implements CommandListener, Que
             messageToSend.append('\n');
         }
 
-        return SendMessage.builder().chatId(message.getChatId()).text(messageToSend.toString()).build();
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text(messageToSend.toString())
+                .build();
     }
 
 }

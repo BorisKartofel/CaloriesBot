@@ -34,12 +34,12 @@ public class UpdateDispatcher {
     public BotApiMethod<?> distribute(Update update, Bot bot) {
         try {
             if (update.hasCallbackQuery()) {
-                checkUser(update.getCallbackQuery().getMessage().getChatId());
+                checkUser(update.getCallbackQuery().getMessage().getChatId(), update);
                 return queryHandler.answer(update.getCallbackQuery(), bot);
             }
             if (update.hasMessage()) {
                 Message message = update.getMessage();
-                checkUser(message.getChatId());
+                checkUser(message.getChatId(), update);
                 if (message.hasText()) {
                     if (message.getText().charAt(0) == '/') {
                         return commandHandler.answer(message, bot);
@@ -54,16 +54,16 @@ public class UpdateDispatcher {
         return null;
     }
 
-    private void checkUser(Long chatId) {
+    private void checkUser(Long chatId, Update update) {
         if (userRepo.existsByChatId(chatId)) {
             return;
         }
         userRepo.save(
                 User.builder()
+                        .firstName(update.getMessage().getFrom().getFirstName())
                         .action(Action.NONE)
                         .registeredAt(LocalDateTime.now())
                         .chatId(chatId)
-                        .firstName("Unnamed User")
                         .build()
         );
     }

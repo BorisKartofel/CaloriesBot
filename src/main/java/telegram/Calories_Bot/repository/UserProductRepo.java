@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import telegram.Calories_Bot.entity.UserProduct;
 import telegram.Calories_Bot.entity.enums.Status;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,5 +15,7 @@ public interface UserProductRepo extends JpaRepository<UserProduct, UUID> {
 
     @Transactional
     void deleteUserProductByUserIdAndStatus(UUID userId, Status status);
+
+    List<UserProduct> findUserProductsByEatingTimeIsGreaterThan(LocalDateTime eatingTime);
 
 }
