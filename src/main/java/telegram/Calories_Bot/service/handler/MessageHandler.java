@@ -33,7 +33,7 @@ public class MessageHandler extends AbstractHandler {
         User user = userRepo.findByChatId(message.getChatId());
         switch (user.getAction()) {
             case NONE -> {
-                return mainManager.sendListOfCommands(message);
+                return mainManager.sendListOfCommands(message, bot);
             }
             case SENDING_TIME, SENDING_DESCRIPTION, SENDING_TITLE -> {
                 return notificationManager.answerMessage(message, bot);
