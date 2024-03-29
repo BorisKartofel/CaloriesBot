@@ -4,9 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public enum Commands {
-    START("/start"),
-    PRODUCT("/product"),
-    TIMER("/timer");
+    START("/start");
 
 
     private final String command;

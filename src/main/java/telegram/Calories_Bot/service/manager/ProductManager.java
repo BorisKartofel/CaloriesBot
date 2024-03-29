@@ -27,6 +27,8 @@ import telegram.Calories_Bot.service.contract.QueryListener;
 import telegram.Calories_Bot.service.factory.KeyboardFactory;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -95,8 +97,10 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
         try {
             int pastDays = Integer.parseInt(message.getText());
-            if (pastDays == 0) return replyThatDataIsIncorrect(message, bot);
-            LocalDateTime pastTime = LocalDateTime.now().minusDays(pastDays);
+            if (pastDays < 0) return replyThatDataIsIncorrect(message, bot);
+
+            LocalDateTime dateTimeNow = LocalDateTime.now();
+            LocalDateTime pastTime = LocalDateTime.now().with(LocalTime.MIN).minusDays(pastDays);
 
             user.setAction(Action.NONE);
             userRepo.save(user);
@@ -114,29 +118,35 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
             }
 
             for (var uniqueProductsEntrySet : uniqueAccumulativeProductIdsAndGrams.entrySet()) {
-                Product product = productRepo.findById(uniqueProductsEntrySet.getKey()).get();
+                Optional<Product> product = productRepo.findById(uniqueProductsEntrySet.getKey());
+                if (product.isEmpty()) return actionIsNoLongerAccessibleBecauseUuidIsIncorrect(message);
 
                 accumulativeProduct.setKcal(
-                        accumulativeProduct.getKcal() + (product.getKcal() * uniqueProductsEntrySet.getValue() / 100)
+                        accumulativeProduct.getKcal() +
+                                (product.get().getKcal() * uniqueProductsEntrySet.getValue() / 100)
                 );
                 accumulativeProduct.setProtein(
-                        accumulativeProduct.getProtein() + (product.getProtein() * uniqueProductsEntrySet.getValue() / 100)
+                        accumulativeProduct.getProtein() +
+                                (product.get().getProtein() * uniqueProductsEntrySet.getValue() / 100)
                 );
                 accumulativeProduct.setFat(
-                        accumulativeProduct.getFat() + (product.getFat() * uniqueProductsEntrySet.getValue() / 100)
+                        accumulativeProduct.getFat() +
+                                (product.get().getFat() * uniqueProductsEntrySet.getValue() / 100)
                 );
                 accumulativeProduct.setCarbohydrate(
-                        accumulativeProduct.getCarbohydrate() + (product.getCarbohydrate() * uniqueProductsEntrySet.getValue() / 100)
+                        accumulativeProduct.getCarbohydrate() +
+                                (product.get().getCarbohydrate() * uniqueProductsEntrySet.getValue() / 100)
                 );
             }
 
             deleteMessage(message, bot);
 
+            var formatter = DateTimeFormatter.ofPattern("d-MMMM", new Locale("ru"));
             return SendMessage.builder()
                     .chatId(message.getChatId())
                     .text(String.format("Статистика за период с %s по %s:\nКалории - %d\nБелки - %.2f\nЖиры - %.2f\nУглеводы - %.2f",
-                            pastTime.toString(),
-                            LocalDateTime.now().toString(),
+                            pastTime.format(formatter),
+                            dateTimeNow.format(formatter),
                             accumulativeProduct.getKcal(),
                             accumulativeProduct.getProtein(),
                             accumulativeProduct.getFat(),
@@ -145,7 +155,11 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                     .build();
 
         } catch (NumberFormatException e) {
+            log.debug(e.getMessage());
             replyThatDataIsIncorrect(message, bot);
+        } catch (NullPointerException | IllegalArgumentException e) {
+            log.debug(e.getMessage());
+            return actionIsNoLongerAccessibleBecauseUuidIsIncorrect(message);
         }
 
         return null;
@@ -160,19 +174,20 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
     }
 */
 
-    private BotApiMethod<?> editGrams(Message message, User user,  Bot bot) {
+    private BotApiMethod<?> editGrams(Message message, User user, Bot bot) {
 
         try {
             int grams = Integer.parseInt(message.getText());
 
-            if (grams == 0) return replyThatDataIsIncorrect(message, bot);
+            if (grams < 1) return replyThatDataIsIncorrect(message, bot);
 
-            UserProduct userProduct = userProductRepo.findById(user.getCurrentProductUUID()).orElseThrow();
+            Optional<UserProduct> userProduct = userProductRepo.findById(user.getCurrentProductUUID());
+            if (userProduct.isEmpty()) return actionIsNoLongerAccessibleBecauseUuidIsIncorrect(message);
 
-            userProduct.setProductGrams(grams);
-            userProduct.setUserId(user.getId());
-            userProduct.setStatus(Status.BUILDING);
-            userProductRepo.save(userProduct);
+            userProduct.get().setProductGrams(grams);
+            userProduct.get().setUserId(user.getId());
+            userProduct.get().setStatus(Status.BUILDING);
+            userProductRepo.save(userProduct.get());
 
             user.setAction(Action.NONE);
             userRepo.save(user);
@@ -180,7 +195,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
             return SendMessage.builder()
                     .chatId(message.getChatId())
                     .text("Настройте продукт")
-                    .replyMarkup(replyMarkupForEditingProduct(userProduct.getId()))
+                    .replyMarkup(replyMarkupForEditingProduct(userProduct.get().getId()))
                     .build();
 
         } catch (NumberFormatException e) {
@@ -207,16 +222,18 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         if (message.getText().length() < 3) return replyThatProductTextIsTooShort(message, bot);
 
         List<Product> products = productRepo.findAllByNameContainingIgnoreCase(message.getText());
-        UserProduct userProduct = userProductRepo.findById(user.getCurrentProductUUID()).orElseThrow();
+        Optional<UserProduct> userProduct = userProductRepo.findById(user.getCurrentProductUUID());
+
+        if (userProduct.isEmpty()) return actionIsNoLongerAccessibleBecauseUuidIsIncorrect(message);
 
         for (Product product : products) {
             // Finds first exact occurrence with message and product's name
             if (product.getName().equals(message.getText())) {
 
-                userProduct.setProductId(product.getId());
-                userProduct.setUserId(user.getId());
-                userProduct.setStatus(Status.BUILDING);
-                userProductRepo.save(userProduct);
+                userProduct.get().setProductId(product.getId());
+                userProduct.get().setUserId(user.getId());
+                userProduct.get().setStatus(Status.BUILDING);
+                userProductRepo.save(userProduct.get());
 
                 user.setAction(Action.NONE);
                 userRepo.save(user);
@@ -224,7 +241,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
                 return SendMessage.builder()
                         .chatId(message.getChatId())
                         .text("Настройте продукт")
-                        .replyMarkup(replyMarkupForEditingProduct(userProduct.getId()))
+                        .replyMarkup(replyMarkupForEditingProduct(userProduct.get().getId()))
                         .build();
             }
         }
@@ -232,13 +249,27 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         return sendMatchingProducts(message, products, bot);
     }
 
-    private BotApiMethod<?> replyThatProductTextIsTooShort(Message message,  Bot bot) {
+    private BotApiMethod<?> actionIsNoLongerAccessibleBecauseUuidIsIncorrect(Message message) {
+        return EditMessageText
+                .builder()
+                .text("Действие больше недоступно")
+                .chatId(message.getChatId())
+                .messageId(message.getMessageId())
+                .replyMarkup(keyboardFactory.createInlineKeyboard(
+                        List.of("На Главную"),
+                        List.of(1),
+                        List.of(main.name())
+                ))
+                .build();
+    }
+
+    private BotApiMethod<?> replyThatProductTextIsTooShort(Message message, Bot bot) {
 
         deleteMessage(message, bot);
 
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text("Текст слишком короткий для того, чтобы я мог найти подходящие продукты")
+                .text("Текст слишком короткий для того, чтобы я мог найти подходящие продукты. Попробуйте снова")
                 .build();
     }
 
@@ -371,10 +402,11 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
         userProduct.get().setStatus(Status.FINISHED);
         userProductRepo.save(userProduct.get());
 
-        String text = "Съедено калорий - " + product.get().getKcal() * userProduct.get().getProductGrams() / 100 + " ⚡️" +
-                "\n Белки - " + product.get().getProtein() * userProduct.get().getProductGrams() / 100 +
-                "\n Жиры - " + product.get().getFat() * userProduct.get().getProductGrams() / 100 +
-                "\n Углеводы - " + product.get().getCarbohydrate() * userProduct.get().getProductGrams() / 100;
+        String text = String.format("Съедено калорий - %d ⚡️\nБелки - %.2f\nЖиры - %.2f\nУглеводы - %.2f",
+                product.get().getKcal() * userProduct.get().getProductGrams() / 100,
+                product.get().getProtein() * userProduct.get().getProductGrams() / 100,
+                product.get().getFat() * userProduct.get().getProductGrams() / 100,
+                product.get().getCarbohydrate() * userProduct.get().getProductGrams() / 100);
 
         return EditMessageText.builder()
                 .text(text)

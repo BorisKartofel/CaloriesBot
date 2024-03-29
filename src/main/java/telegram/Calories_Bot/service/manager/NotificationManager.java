@@ -130,7 +130,7 @@ public class NotificationManager extends AbstractManager implements QueryListene
         var notification = notificationRepo.findById(user.getCurrentNotification()).orElseThrow();
 
         var messageText = message.getText().strip();
-        var pattern = Pattern.compile("^[0-9]{2}:[0-9]{2}:[0-9]{2}$").matcher(messageText);
+        var pattern = Pattern.compile("^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$").matcher(messageText);
         if (pattern.matches()) {
             var nums = messageText.split(":");
             int seconds = Integer.parseInt(nums[0]) * 3600 + Integer.parseInt(nums[1]) * 60 + Integer.parseInt(nums[2]);
