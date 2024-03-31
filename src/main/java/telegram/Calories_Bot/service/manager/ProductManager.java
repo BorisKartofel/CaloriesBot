@@ -141,7 +141,7 @@ public class ProductManager extends AbstractManager implements QueryListener, Me
 
             deleteMessage(message, bot);
 
-            var formatter = DateTimeFormatter.ofPattern("d-MMMM", new Locale("ru"));
+            var formatter = DateTimeFormatter.ofPattern("d MMMM (HH:mm)", new Locale("ru"));
             return SendMessage.builder()
                     .chatId(message.getChatId())
                     .text(String.format("Статистика за период с %s по %s:\nКалории - %d\nБелки - %.2f\nЖиры - %.2f\nУглеводы - %.2f",
