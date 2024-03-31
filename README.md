@@ -1,5 +1,8 @@
 # Calorizator
-Telegram-бот для подсчёта калорий с удобными дополнениями (статистика, таймер, учёт продуктов) <!-- описание репозитория -->
+Telegram-бот для подсчёта калорий с удобными дополнениями (статистика, таймер, учёт продуктов).
+
+[Ссылка](https://t.me/DailyCaloriesCountBot) на бота
+
 <!--Блок информации о репозитории в бейджах-->
 ![Static Badge](https://img.shields.io/badge/BorisKartofel-CaloriesBot-orange)
 ![GitHub top language](https://img.shields.io/github/languages/top/BorisKartofel/CaloriesBot?color=orange)
