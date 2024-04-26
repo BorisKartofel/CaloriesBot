@@ -31,8 +31,13 @@ RUN set -eux \
 ENV LANG C.UTF-8
 ENV JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto
 
-# Dependency installation
+RUN apt-get update && \
+    apt-get install -y maven
+
+WORKDIR /app
+
+COPY . /app
+
 RUN mvn clean install
 
-# Run Spring app
-CMD mvn spring-boot:run
+CMD ["java", "-jar", "target/Calories_Bot-0.0.1-SNAPSHOT.jar"]
