@@ -1,16 +1,9 @@
-version: '3.1'
 services:
   database:
-    image: postgres
+    image: postgres:latest
     ports:
-      - '15432:5432'
-    volumes:
-      - ./Calories_Bot:/docker-entrypoint-initdb.d
-      - database:/data/database
+      - 15432:5432
     environment:
-      - 'POSTGRES_USER=postgres'
-      - 'POSTGRES_DB=database'
-      - 'POSTGRES_PASSWORD=qwerty'
-volumes:
-  database:
-    driver: local
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=bot_database
+      - POSTGRES_PASSWORD=qwerty
