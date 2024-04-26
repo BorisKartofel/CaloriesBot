@@ -1,16 +1,38 @@
-version: '3.1'
-services:
-  database:
-    image: postgres
-    ports:
-      - '15432:5432'
-    volumes:
-      - ./Calories_Bot:/docker-entrypoint-initdb.d
-      - database:/data/database
-    environment:
-      - 'POSTGRES_USER=postgres'
-      - 'POSTGRES_DB=database'
-      - 'POSTGRES_PASSWORD=qwerty'
-volumes:
-  database:
-    driver: local
+  version: '3.8'
+
+  services:
+    database:
+      image: postgres
+      network_mode: bridge
+      container_name: postgres_db
+      ports:
+        - '15432:5432'
+      volumes:
+        - ./Calories_Bot:/docker-entrypoint-initdb.d
+        # - database:/data/database
+      environment:
+        - 'POSTGRES_USER=postgres'
+        - 'POSTGRES_PASSWORD=qwerty'
+        - 'POSTGRES_DB=database'
+
+#    app:
+#      depends_on:
+#        - database
+#      network_mode: bridge
+#      build: .
+#      container_name: application_itself
+#      ports:
+#        - '6868:8080'
+#      environment:
+#        SPRING_APPLICATION_JSON: '{
+#                "spring.datasource.driver-class-name"  : "org.postgresql.Driver",
+#                "spring.datasource.url"  : "jdbc:postgresql://localhost:15432/database",
+#                "spring.datasource.username" : "postgres",
+#                "spring.datasource.password" : "qwerty",
+#                "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect",
+#                "spring.jpa.hibernate.ddl-auto" : "update"
+#              }'
+#      volumes:
+#        - .m2:/root/.m2
+#      stdin_open: true
+#      tty: true

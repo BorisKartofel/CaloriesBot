@@ -21,8 +21,6 @@ RUN set -eux \
 
 ENV LANG C.UTF-8
 ENV JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto
-ENV BOT_TOKEN=6779729518:AAG7bf3mrQ6uM8pZGsVnhoc8IG5jgNVWfVI
-ENV BOT_NAME=@DailyCaloriesCountBot
 
 # Установка Maven 3.2.5
 RUN set -eux \
@@ -42,8 +40,8 @@ WORKDIR /app
 # Копируем исходный код проекта внутрь контейнера
 COPY . /app
 
-# Собираем приложение с помощью Maven
-RUN mvn package
+# Install the dependencies in pom.xml
+RUN mvn clean install
 
-# Команда для запуска Java приложения
-CMD ["java", "-jar", "target/Calories_Bot-0.0.1-SNAPSHOT.jar"]
+# Run Spring app
+CMD mvn spring-boot:run
