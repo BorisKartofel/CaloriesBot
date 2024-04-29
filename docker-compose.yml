@@ -1,38 +1,44 @@
-  version: '3.8'
+version: '3.8'
+services:
+  springboot-app:
+    image: client:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/bot_database
 
-  services:
-    database:
-      image: postgres
-      network_mode: bridge
-      container_name: postgres_db
-      ports:
-        - '15432:5432'
-      volumes:
-        - ./Calories_Bot:/docker-entrypoint-initdb.d
-        # - database:/data/database
-      environment:
-        - 'POSTGRES_USER=postgres'
-        - 'POSTGRES_PASSWORD=qwerty'
-        - 'POSTGRES_DB=database'
+  database:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bot_database
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./infrastructure/db/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
+      - db-data:/var/lib/postgresql/data
+    restart: always
 
-#    app:
-#      depends_on:
-#        - database
-#      network_mode: bridge
-#      build: .
-#      container_name: application_itself
-#      ports:
-#        - '6868:8080'
-#      environment:
-#        SPRING_APPLICATION_JSON: '{
-#                "spring.datasource.driver-class-name"  : "org.postgresql.Driver",
-#                "spring.datasource.url"  : "jdbc:postgresql://localhost:15432/database",
-#                "spring.datasource.username" : "postgres",
-#                "spring.datasource.password" : "qwerty",
-#                "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect",
-#                "spring.jpa.hibernate.ddl-auto" : "update"
-#              }'
-#      volumes:
-#        - .m2:/root/.m2
-#      stdin_open: true
-#      tty: true
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4:7
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  db-data:
+  pgadmin-data:
