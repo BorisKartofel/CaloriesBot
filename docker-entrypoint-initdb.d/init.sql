@@ -1,3 +1,5 @@
+create database bot_database;
+
 create table users
 (
     first_name              varchar(80) default 'Unnamed'::character varying,
@@ -94,8 +96,6 @@ create table users_products
     eating_time   timestamp
 );
 
-alter table users_products
-    owner to postgres;
 
 create index users_products_product_id_index
     on users_products (product_id);
