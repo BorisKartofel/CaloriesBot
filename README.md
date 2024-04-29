@@ -1,4 +1,4 @@
-# Calorizator
+# Calorimeter
 Telegram-бот для подсчёта калорий с удобными дополнениями (статистика, таймер, учёт продуктов).
 
 [Ссылка](https://t.me/DailyCaloriesCountBot) на бота
