@@ -1,0 +1,98 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="BorisKartofel" id="1714832053012-1">
+        <createTable tableName="products">
+            <column autoIncrement="true" name="id" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="products_pk"/>
+            </column>
+            <column name="product_name" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="protein_value" type="FLOAT8"/>
+            <column name="fat_value" type="FLOAT8"/>
+            <column name="carbohydrate_value" type="FLOAT8"/>
+            <column name="kcal_value" type="INTEGER"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="BorisKartofel" id="1714832053012-2">
+        <createTable tableName="users">
+            <column defaultValue="Unnamed" name="first_name" type="VARCHAR(80)"/>
+            <column name="registration_date" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="VARCHAR(30)"/>
+            <column name="current_notification_id" type="UUID"/>
+            <column name="chat_id" type="BIGINT"/>
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_pk"/>
+            </column>
+            <column name="current_product_uuid" type="UUID"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-3">
+        <createTable tableName="users_products">
+            <column name="product_id" type="INTEGER"/>
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_products_pkey"/>
+            </column>
+            <column name="status" type="VARCHAR(8)"/>
+            <column name="user_id" type="UUID"/>
+            <column name="product_grams" type="INTEGER"/>
+            <column name="eating_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-4">
+        <createTable tableName="users_notifications">
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_notifications_pkey"/>
+            </column>
+            <column name="notifications_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="users_notifications_pkey"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-5">
+        <addUniqueConstraint columnNames="product_name" constraintName="unique_product_name" tableName="products"/>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-6">
+        <createIndex indexName="users_products_product_id_index" tableName="users_products">
+            <column name="product_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-7">
+        <addUniqueConstraint columnNames="notifications_id" constraintName="uk_fqai0p0e0nsyh9pp2j0h32ggq" tableName="users_notifications"/>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-8">
+        <createTable tableName="notifications">
+            <column name="title" type="VARCHAR(50)"/>
+            <column name="description" type="VARCHAR(60)"/>
+            <column name="status" type="VARCHAR(8)"/>
+            <column name="seconds" type="INTEGER"/>
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="notifications_pk"/>
+            </column>
+            <column name="user_id" type="UUID"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-9">
+        <addForeignKeyConstraint baseColumnNames="notifications_id" baseTableName="users_notifications" constraintName="fk17pt2krtfgoof65xdvtbpf5aw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="notifications" validate="true"/>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-10">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="notifications" constraintName="fk9y21adhxn0ayjhfocscqox7bh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true"/>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-11">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="users_notifications" constraintName="fkil3tssmpyic5ruavb9jbbw2bb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true"/>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-12">
+        <addForeignKeyConstraint baseColumnNames="product_id" baseTableName="users_products" constraintName="users_products___fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="products" validate="true"/>
+    </changeSet>
+    <changeSet author="BorisKartofel" id="1714832053012-13">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="users_products" constraintName="users_products__id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="users" validate="true"/>
+    </changeSet>
+
+    <changeSet id="1714832053012-14" author="BorisKartofel">
+        <loadData tableName="products" file="db/data/products-data.csv"/>
+    </changeSet>
+</databaseChangeLog>
