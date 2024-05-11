@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   springboot-app:
-    image: client:0.0.1
+    image: client:0.0.2
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,9 +9,8 @@ services:
       - "8080:8080"
     depends_on:
       - database
-    environment:
-      - SERVER_PORT=8080
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/bot_database
+    env_file:
+      - ./.env
 
   database:
     image: postgres:latest
@@ -23,7 +22,6 @@ services:
     ports:
       - "15432:5432"
     volumes:
-      - ./infrastructure/db/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
       - db-data:/var/lib/postgresql/data
     restart: always
 
