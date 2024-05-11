@@ -60,12 +60,12 @@ ngrok http http://localhost:8080
 
 Откройте браузер и вставьте в поисковую строку следующий запрос, предварительно заменив ВАШ-ТОКЕН и ВАШ-АДРЕС на соответствующие значения.
 ```
-https://api.telegram.org/ВАШ-ТОКЕН/setWebhook?url=ВАШ-АДРЕС
+https://api.telegram.org/botВАШ-ТОКЕН/setWebhook?url=ВАШ-АДРЕС
 ```
 
 *ВАШ-АДРЕС - это адрес, который Вы копировали на предыдущем этапе*
 
-В итоге получается примерно такой запрос: `https://api.telegram.org/8392674102:AHG5df2opR4tN7sYHjKlqzv9UE8xwQXZbCD/setWebhook?url=https://9e9d-185-253-183-28.ngrok-free.app`
+В итоге получается примерно такой запрос: `https://api.telegram.org/bot8392674102:AHG5df2opR4tN7sYHjKlqzv9UE8xwQXZbCD/setWebhook?url=https://9e9d-185-253-183-28.ngrok-free.app`
 
 #### Поздравляю! Вы настроили своего бота и теперь он готов к использованию.
 
