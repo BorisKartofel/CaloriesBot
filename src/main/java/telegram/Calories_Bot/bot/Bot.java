@@ -1,5 +1,6 @@
 package telegram.Calories_Bot.bot;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -13,6 +14,7 @@ public final class Bot extends TelegramWebhookBot {
     private final TelegramProperties telegramProperties;
     private final UpdateDispatcher updateDispatcher;
 
+    @Autowired
     public Bot(TelegramProperties telegramProperties, UpdateDispatcher updateDispatcher) {
         super(telegramProperties.getToken());
         this.telegramProperties = telegramProperties;
