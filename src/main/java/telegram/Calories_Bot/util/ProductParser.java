@@ -27,7 +27,8 @@ public class ProductParser {
         final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
         LinkedList<Product> products = new LinkedList<>();
         final Lock lock = new ReentrantLock();
-        final Semaphore semaphore = new Semaphore(40);
+        final Semaphore semaphore = new Semaphore(30);
+        long timeBefore = System.currentTimeMillis();
 
         try {
 
@@ -47,7 +48,6 @@ public class ProductParser {
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-
 
                         //  Парсим аттрибуты со значением 'even' и 'odd' (Они чередуются друг за другом в HTML файле)
                         Elements elements = doc.getElementsByAttributeValueMatching("class", "^(even.*|odd.*)");
@@ -84,16 +84,19 @@ public class ProductParser {
                     }
                 });
             }
-
             executor.shutdown();
+
             if (!executor.awaitTermination(20, TimeUnit.SECONDS)) {
                 executor.shutdownNow();
             }
+
 
         } catch (InterruptedException e) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+  
+        System.err.println("Время выполнения: " + (System.currentTimeMillis() - timeBefore) + " миллисекунд");
 
         return products;
     }
