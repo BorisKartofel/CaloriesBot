@@ -49,7 +49,6 @@ public class ProductParser {
                             throw new RuntimeException(e);
                         }
 
-
                         //  Парсим аттрибуты со значением 'even' и 'odd' (Они чередуются друг за другом в HTML файле)
                         Elements elements = doc.getElementsByAttributeValueMatching("class", "^(even.*|odd.*)");
 
@@ -91,11 +90,12 @@ public class ProductParser {
                 executor.shutdownNow();
             }
 
+
         } catch (InterruptedException e) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-
+  
         System.err.println("Время выполнения: " + (System.currentTimeMillis() - timeBefore) + " миллисекунд");
 
         return products;

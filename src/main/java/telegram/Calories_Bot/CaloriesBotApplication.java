@@ -8,6 +8,5 @@ public class CaloriesBotApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(CaloriesBotApplication.class, args);
-
     }
 }
