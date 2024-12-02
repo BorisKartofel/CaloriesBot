@@ -98,8 +98,6 @@ public class ProductParser {
   
         System.err.println("Время выполнения: " + (System.currentTimeMillis() - timeBefore) + " миллисекунд");
 
-        System.err.println("Время выполнения: " + (System.currentTimeMillis() - timeBefore) + " миллисекунд");
-
         return products;
     }
 }
