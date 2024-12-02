@@ -19,7 +19,15 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ProductParser {
 
     /**
-     * @return Список всех продуктов, взятых с сайта. Там их будет +-11 тысяч.
+     * This method retrieves all products from the Calorizator website.
+     * It uses Jsoup to connect to the website and parse the HTML content.
+     * The method creates a new ExecutorService with a virtual thread per task executor.
+     * It then submits tasks to the executor for each page number from 0 to 82.
+     * Each task connects to the website, parses the HTML content, and extracts the product information.
+     * The extracted product information is then added to a LinkedList of products.
+     * The method waits for all tasks to complete and returns the LinkedList of products.
+     *
+     * @return LinkedList<Product> - a list of all products retrieved from the website. There will be about -+11 thousands.
      */
 
     public static LinkedList<Product> getAllProductsFromCalorizatorWebSite() {
