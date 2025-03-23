@@ -1,42 +1,67 @@
 version: '3.8'
 services:
   springboot-app:
-    image: client:0.0.2
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL}
     ports:
       - "8080:8080"
     depends_on:
-      - database
-    env_file:
-      - ./.env
+      database:
+        condition: service_healthy
+    networks:
+      - backend-network
+    restart: unless-stopped
 
   database:
-    image: postgres:latest
-    container_name: db
+    image: postgres:16.8
+    env_file:
+      - ./.env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: bot_database
-    ports:
-      - "15432:5432"
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+    networks:
+      - backend-network
     volumes:
       - db-data:/var/lib/postgresql/data
-    restart: always
+    restart: unless-stopped
 
   pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4:7
-    restart: always
+    image: dpage/pgadmin4:7.8
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - backend-network
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+    restart: unless-stopped
 
 volumes:
   db-data:
+    driver: local
   pgadmin-data:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge
