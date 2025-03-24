@@ -55,9 +55,10 @@ public class NotificationRunnableTask implements Runnable {
                 .chatId(chatId)
                 .text(
                         "⚡️ Напоминание: " + notification.getTitle() + "\n"
-                                + "❗️ " + notification.getDescription() + "\n\n"
-                )
+                        + "❗️ " + (notification.getDescription() == null ? "Нет описания" : notification.getDescription() + "\n"
+                ))
                 .build();
+
     }
 
 }
