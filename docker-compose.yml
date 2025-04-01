@@ -25,7 +25,6 @@ services:
       - backend-network
     restart: unless-stopped
 
-
   database:
     image: postgres:16.8
     env_file:
@@ -82,7 +81,6 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     restart: unless-stopped
-
 
 volumes:
   db-data:
